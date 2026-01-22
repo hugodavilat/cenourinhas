@@ -1,20 +1,67 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Casamento Cenourinha</title>
-    <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background:#f7f7f9; color:#222; display:flex; align-items:center; justify-content:center; height:100vh; margin:0 }
-      .card { background:white; padding:2rem 2.5rem; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.08); text-align:center; max-width:520px }
-      h1 { margin:0 0 0.5rem 0 }
-      p { margin:0.25rem 0 0 }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>Casamento Cenourinha</h1>
-      <p>{{ message }}</p>
+{% extends 'base.html' %}
+
+{% block title %}Aline & Hugo — Nosso Casamento{% endblock %}
+
+{% block content %}
+  <section class="text-center py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <h1 class="display-font mb-2" style="font-size:3rem">Aline & Hugo</h1>
+        <p class="lead text-muted mb-4">{{ message }}</p>
+        <p class="mb-4"><strong class="accent">{{ wedding_date }}</strong> &middot; <span class="text-muted">{{ venue }}</span></p>
+        <div>
+          <a href="#details" class="btn btn-primary btn-lg me-2">Detalhes</a>
+          <a href="#rsvp" class="btn btn-outline-primary btn-lg">Confirmar presença</a>
+        </div>
+      </div>
     </div>
-  </body>
-</html>
+  </section>
+
+  <section id="our-story" class="py-5 accent-bg rounded-3 mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h2 class="display-font">Nossa história</h2>
+        <p class="text-muted">Era uma vez... (um pequeno resumo romântico pode ser colocado aqui). Aline e Hugo se conheceram, se apaixonaram e agora celebram com amigos e família.</p>
+      </div>
+      <div class="col-md-6 text-md-end mt-4 mt-md-0">
+        <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=900&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="Casal">
+      </div>
+    </div>
+  </section>
+
+  <section id="details" class="py-4">
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <h3>Cerimônia</h3>
+        <p class="text-muted mb-1"><strong>Quando:</strong> {{ wedding_date }}</p>
+        <p class="text-muted"><strong>Onde:</strong> {{ venue }} {% if address %} — {{ address }}{% endif %}</p>
+      </div>
+      <div class="col-md-6 mb-3">
+        <h3>Informações</h3>
+        <p class="text-muted">Mais detalhes sobre traje, estacionamento e horários serão atualizados aqui.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery" class="py-4">
+    <h3 class="mb-3">Galeria</h3>
+    <div class="row g-3">
+      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
+      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
+      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
+      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
+    </div>
+  </section>
+
+  <section id="rsvp" class="py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-8 text-center">
+        <h3>Confirmar presença</h3>
+        <p class="text-muted">Por favor confirme sua presença até que a data seja definida.</p>
+        <a class="btn btn-success btn-lg" href="mailto:your-email@example.com?subject=RSVP%20Aline%20e%20Hugo">Enviar RSVP</a>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}
+

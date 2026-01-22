@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Aline & Hugo — Casamento{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+      :root { --accent:#c77dff; --muted:#6b7280 }
+      body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+      .display-font { font-family: 'Playfair Display', serif; }
+      .accent { color: var(--accent) }
+      .accent-bg { background: linear-gradient(90deg, rgba(199,125,255,0.12), rgba(199,125,255,0.04)); }
+    </style>
+    {% block head %}{% endblock %}
+  </head>
+  <body class="bg-light text-dark">
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+      <div class="container">
+        <a class="navbar-brand display-font" href="#">Aline & Hugo</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="#our-story">Nossa história</a></li>
+            <li class="nav-item"><a class="nav-link" href="#details">Cerimônia</a></li>
+            <li class="nav-item"><a class="nav-link" href="#rsvp">RSVP</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="py-5">
+      <div class="container">{% block content %}{% endblock %}</div>
+    </main>
+
+    <footer class="py-4 mt-5 bg-white border-top">
+      <div class="container text-center text-muted small">&copy; <span class="fw-semibold">Aline & Hugo</span> — Feito com ❤️</div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+  </html>
