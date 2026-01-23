@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-4+!(t%=$gl31r5rmnu8&g(t0ebv_w46f@lnvasu$asue+v!f2r
 # SECURITY WARNING: don't run with debug turned on in production!
 # Enable debug for local development so Django serves static files from
 # the `static/` directory. Set this to False in production.
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "cenourinhas.com.br", "www.cenourinhas.com.br"]
 
