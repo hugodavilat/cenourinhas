@@ -1,5 +1,78 @@
+# Virtual environments
 venv/
+.env/
+.virtualenv/
+.venv/
+
+# Python cache
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*$py.class
+
+# Environment variables / secrets
+*.env
+.env.*
+
+
+# Django static & media (build folders)
+staticfiles/
+media/
+
+# Ignore collected static files
+staticfiles/
+static_root/
+tmp/
+
+# SQLite database (optional — comente se quiser versionar)
+db.sqlite3
+*.sqlite3
+
+# Logs
+*.log
+
+# MacOS files
 .DS_Store
-db.sqlite*
+.AppleDouble
+.LSOverride
+Icon?
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.exe
+*.dylib
+
+# Django migrations cache (keep actual migrations!)
+**/migrations/__pycache__/
+
+# Coverage / testing
+.coverage
+htmlcov/
+.tox/
+pytest_cache/
+
+# MyPy / type checkers
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# Pip installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Compiled translation files
+*.mo
+
+# JetBrains tools
+.idea/
