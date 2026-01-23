@@ -8,32 +8,64 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
       :root { --accent:#c77dff; --muted:#6b7280 }
-      body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+      html { box-sizing: border-box; }
+      *, *:before, *:after { box-sizing: inherit; }
+      body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; line-height:1.5; }
       .display-font { font-family: 'Playfair Display', serif; }
       .accent { color: var(--accent) }
       .accent-bg { background: linear-gradient(90deg, rgba(199,125,255,0.12), rgba(199,125,255,0.04)); }
+
+      /* Section inner padding to give breathing room inside accent sections */
+      .section-inner { padding: 1.5rem; }
+      @media (min-width: 768px) { .section-inner { padding: 2.25rem; } }
+
+      /* Spacing rules for headings and body text inside sections */
+      .section-inner h2.display-font { margin-bottom: 1.5rem; }
+      .section-inner h3 { margin-bottom: 1rem; }
+      @media (min-width: 768px) {
+        .section-inner h2.display-font { margin-bottom: 2rem; }
+        .section-inner h3 { margin-bottom: 1.25rem; }
+      }
+
+      /* Slightly larger paragraph text inside feature sections */
+      .accent-bg p { font-size: 1.03rem; }
+
+      /* Image column tweaks for symmetry */
+      .section-media { display:flex; align-items:center; justify-content:center; }
+
+      /* Responsive page container to keep content fluid */
+      .page-container { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
+
+      /* Hero spacing and responsive heading */
+      .hero h1 { font-size: clamp(2.25rem, 6vw, 3.25rem); }
+
+      /* Utility to crop images while keeping them responsive */
+      .card-img-cover { width:100%; height:220px; object-fit:cover; display:block; }
+
+      /* Slightly softer card corners and spacing */
+      .card { border-radius: .6rem; }
     </style>
     {% block head %}{% endblock %}
   </head>
   <body class="bg-light text-dark">
     <nav class="navbar navbar-expand-lg bg-white shadow-sm">
       <div class="container">
-        <a class="navbar-brand display-font" href="#">Aline & Hugo</a>
+        <a class="navbar-brand display-font" href="/">Aline & Hugo</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="nav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="#our-story">Nossa história</a></li>
-            <li class="nav-item"><a class="nav-link" href="#details">Cerimônia</a></li>
-            <li class="nav-item"><a class="nav-link" href="#rsvp">RSVP</a></li>
+            <li class="nav-item"><a class="nav-link" href="#sobre">Início</a></li>
           </ul>
         </div>
       </div>
     </nav>
 
     <main class="py-5">
-      <div class="container">{% block content %}{% endblock %}</div>
+      <div class="container-fluid">
+        <div class="page-container">{% block content %}{% endblock %}</div>
+      </div>
     </main>
 
     <footer class="py-4 mt-5 bg-white border-top">

@@ -23,7 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4+!(t%=$gl31r5rmnu8&g(t0ebv_w46f@lnvasu$asue+v!f2r'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Enable debug for local development so Django serves static files from
+# the `static/` directory. Set this to False in production.
+DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "cenourinhas.com.br", "www.cenourinhas.com.br"]
 
@@ -116,6 +118,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -1,67 +1,148 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title %}Aline & Hugo — Nosso Casamento{% endblock %}
 
 {% block content %}
-  <section class="text-center py-5">
+<section id="sobre" class="text-center py-5">
+  <div class="section-inner">
     <div class="row justify-content-center">
       <div class="col-lg-8">
-        <h1 class="display-font mb-2" style="font-size:3rem">Aline & Hugo</h1>
-        <p class="lead text-muted mb-4">{{ message }}</p>
-        <p class="mb-4"><strong class="accent">{{ wedding_date }}</strong> &middot; <span class="text-muted">{{ venue }}</span></p>
-        <div>
-          <a href="#details" class="btn btn-primary btn-lg me-2">Detalhes</a>
-          <a href="#rsvp" class="btn btn-outline-primary btn-lg">Confirmar presença</a>
+        <h1 class="display-font mb-2">Aline & Hugo</h1>
+        <p class="lead text-muted mb-4">Quase um carnaval fora de época. </p>
+        <p class="mb-4"><strong class="accent">10 e 11 de outubro de 2026</strong> &middot;
+          <span class="text-muted">Belo Horizonte</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cenourinhas" class="py-5 accent-bg rounded-3 mb-4">
+  <div class="section-inner">
+    <div class="row align-items-center g-4">
+      <div class="col-12 col-md-7">
+        <h2 class="display-font">Por quê "Cenourinhas"?</h2>
+        <div class="text-muted mx-auto" style="max-width:70ch; text-align:justify;">
+          <p>
+            A cada nova corrida e a cada nova aventura, o sentimento era sempre o mesmo:
+            "To Bem Não....".
+          </p>
+          <p>
+            E assim o meme do "kkkrai cenorinha, to bem não" era usado quase diariamente entre nós.
+            Com o tempo, chamar um ao outro de "Cenourinha" virou algo natural e carinhoso.
+          </p>
+        </div>
+      </div>
+      <div class="col-12 col-md-5 section-media">
+        <img src="{% static 'imgs/kkkrai.jpeg' %}" class="img-fluid rounded" alt="Casal" style="max-width:320px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sobre-o-casal" class="py-5 bg-light">
+  <div class="container">
+    <div class="row justify-content-center text-center">
+      <div class="col-lg-8">
+        <h2 class="display-5 display-font mb-4">Sobre o Casal</h2>
+        <p class="lead text-muted">
+          A DEFINIR.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- <hr class="my-0 opacity-25"> -->
+
+<section id="nossa-jornada" class="py-5">
+  <div class="container">
+    <div class="row align-items-center g-5">
+
+      <div class="col-12 col-md-5 col-lg-4">
+        <div class="card shadow-sm border-0 overflow-hidden">
+          <div style="height: 500px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+            <img src="{% static 'imgs/jangal.jpg' %}" alt="Foto do casal"
+              style="height: 100%; width: 85%; object-fit: cover;">
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-7 col-lg-8">
+        <div class="ps-md-4">
+          <h2 class="display-font mb-4">Nossa jornada</h2>
+          <div class="text-muted fs-5" style="text-align: justify; line-height: 1.6;">
+            <p>Nunca subestimemos o romantismo de um casual encontro do Tinder.</p>
+            <p>
+              A necessidade de dormir junto todos os dias surgiu cedo, quando nos isolamos após pegarmos Covid.
+              Dois meses depois do primeiro encontro, já estávamos viajando para o Ceará.
+              Três meses depois já namorávamos oficialmente. Um ano depois, já estávamos morando juntos.
+            </p>
+            <p class="fst-italic">"Deve ser horrível não ser emocionado ao se relacionar."</p>
+          </div>
+          <!-- <p class="text-muted small mt-3">(Clique na foto para ampliar)</p> -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- <section id="local-e-festa" class="py-5 bg-light">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="display-font display-5">Onde e Quando</h2>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-12 col-lg-6">
+        <div class="card h-100 shadow-sm border-0">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                <i class="bi bi-calendar-heart"></i> </div>
+              <h3 class="display-font ms-3 mb-0">Pré-Casamento</h3>
+            </div>
+            
+            <ul class="list-unstyled mb-4">
+              <li class="mb-2"><strong>Data:</strong> 10 de outubro, às 13h</li>
+              <li class="mb-2"><strong>Local:</strong> Quintal Pra Festas</li>
+              <li class="mb-2"><strong>Traje:</strong> Descontraído</li>
+            </ul>
+
+            <div class="ratio ratio-16x9 rounded overflow-hidden">
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d29995.633595023406!2d-43.98171516920444!3d-19.989443173187475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa697d8e099d1e1%3A0x27fdb1a43b3ec94!2sQuintal%20Pra%20Festa!5e0!3m2!1sen!2sbr!4v1769134199074!5m2!1sen!2sbr" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="card h-100 shadow-sm border-0">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                <i class="bi bi-glass-gold"></i>
+              </div>
+              <h3 class="display-font ms-3 mb-0">Casamento</h3>
+            </div>
+
+            <ul class="list-unstyled mb-4">
+              <li class="mb-2"><strong>Data:</strong> 11 de outubro, às 18h</li>
+              <li class="mb-2"><strong>Local:</strong> Templo Cervejeiro</li>
+              <li class="mb-2"><strong>Traje:</strong> Esporte Fino</li>
+            </ul>
+
+            <div class="ratio ratio-16x9 rounded overflow-hidden">
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3749.454170616523!2d-43.963690425396514!3d-19.98944438141241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa6bd42c2837ee5%3A0x109de89657a829e3!2sCervejaria%20Backer!5e0!3m2!1sen!2sbr!4v1769134129528!5m2!1sen!2sbr" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </section>
-
-  <section id="our-story" class="py-5 accent-bg rounded-3 mb-4">
-    <div class="row align-items-center">
-      <div class="col-md-6">
-        <h2 class="display-font">Nossa história</h2>
-        <p class="text-muted">Era uma vez... (um pequeno resumo romântico pode ser colocado aqui). Aline e Hugo se conheceram, se apaixonaram e agora celebram com amigos e família.</p>
-      </div>
-      <div class="col-md-6 text-md-end mt-4 mt-md-0">
-        <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=900&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="Casal">
-      </div>
-    </div>
-  </section>
-
-  <section id="details" class="py-4">
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <h3>Cerimônia</h3>
-        <p class="text-muted mb-1"><strong>Quando:</strong> {{ wedding_date }}</p>
-        <p class="text-muted"><strong>Onde:</strong> {{ venue }} {% if address %} — {{ address }}{% endif %}</p>
-      </div>
-      <div class="col-md-6 mb-3">
-        <h3>Informações</h3>
-        <p class="text-muted">Mais detalhes sobre traje, estacionamento e horários serão atualizados aqui.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="gallery" class="py-4">
-    <h3 class="mb-3">Galeria</h3>
-    <div class="row g-3">
-      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
-      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
-      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
-      <div class="col-6 col-md-3"><img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=60&auto=format&fit=crop" class="img-fluid rounded" alt="gallery"></div>
-    </div>
-  </section>
-
-  <section id="rsvp" class="py-5">
-    <div class="row justify-content-center">
-      <div class="col-md-8 text-center">
-        <h3>Confirmar presença</h3>
-        <p class="text-muted">Por favor confirme sua presença até que a data seja definida.</p>
-        <a class="btn btn-success btn-lg" href="mailto:your-email@example.com?subject=RSVP%20Aline%20e%20Hugo">Enviar RSVP</a>
-      </div>
-    </div>
-  </section>
+  </div>
+</section> -->
 
 {% endblock %}
-
