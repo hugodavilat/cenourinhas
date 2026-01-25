@@ -20,5 +20,11 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('admin/', admin.site.urls),
+    path('presente/', views.presente, name='presente'),
+    path('pagamento/<int:presente_id>/', views.iniciar_pagamento, name='iniciar_pagamento'),
+    path('pagamento/sucesso/', views.pagamento_sucesso, name='pagamento_sucesso'),
+    path('pagamento/erro/', views.pagamento_erro, name='pagamento_erro'),
+    path('pagamento/pendente/', views.pagamento_pendente, name='pagamento_pendente'),
+    path('webhook/mercadopago/', views.webhook_mercadopago, name='webhook_mercadopago'),
+    path('admin/', admin.site.urls), 
 ]

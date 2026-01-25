@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Pagamento Realizado — Aline & Hugo{% endblock %}
+
+{% block content %}
+<div style="padding: 4rem 2rem; text-align: center; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #c77dff 0%, #e0aaff 100%); 
+              padding: 3rem; 
+              border-radius: 1rem; 
+              color: white;
+              margin-bottom: 2rem;">
+    <svg style="width: 80px; height: 80px; margin: 0 auto 1rem; display: block;" 
+         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <h1 style="font-size: 2rem; margin: 0; font-weight: 700;">{{ titulo }}</h1>
+  </div>
+
+  <div style="background: #f9fafb; 
+              padding: 2rem; 
+              border-radius: 0.75rem;
+              border: 1px solid #e5e7eb;
+              margin-bottom: 2rem;">
+    <p style="font-size: 1.1rem; color: #374151; margin: 0; line-height: 1.6;">
+      {{ mensagem }}
+    </p>
+    {% if payment_id %}
+    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 1rem;">
+      ID do pagamento: <strong>{{ payment_id }}</strong>
+    </p>
+    {% endif %}
+  </div>
+
+  <div style="display: flex; gap: 1rem; justify-content: center;">
+    <a href="{% url 'presente' %}" 
+       style="background-color: #c77dff; 
+               color: white; 
+               padding: 0.75rem 1.5rem; 
+               border-radius: 0.5rem; 
+               text-decoration: none; 
+               font-weight: 600;
+               transition: background-color 0.3s ease;"
+       onmouseover="this.style.backgroundColor='#b85dd9'"
+       onmouseout="this.style.backgroundColor='#c77dff'">
+      Ver Mais Presentes
+    </a>
+    <a href="{% url 'home' %}" 
+       style="background-color: #e0aaff; 
+               color: #374151; 
+               padding: 0.75rem 1.5rem; 
+               border-radius: 0.5rem; 
+               text-decoration: none; 
+               font-weight: 600;
+               transition: background-color 0.3s ease;"
+       onmouseover="this.style.backgroundColor='#d896ff'"
+       onmouseout="this.style.backgroundColor='#e0aaff'">
+      Voltar para Casa
+    </a>
+  </div>
+
+  <p style="margin-top: 2rem; color: #9ca3af; font-size: 0.9rem;">
+    Obrigado por fazer parte dessa celebração! 💝
+  </p>
+</div>
+{% endblock %}
