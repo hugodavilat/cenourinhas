@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -26,5 +26,6 @@ urlpatterns = [
     path('pagamento/erro/', views.pagamento_erro, name='pagamento_erro'),
     path('pagamento/pendente/', views.pagamento_pendente, name='pagamento_pendente'),
     path('webhook/mercadopago/', views.webhook_mercadopago, name='webhook_mercadopago'),
+    path("otp/", include("otp.urls")),
     path('admin/', admin.site.urls), 
 ]

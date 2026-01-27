@@ -6,6 +6,7 @@ from django.views.decorators.http import require_http_methods
 import mercadopago
 
 from .models import Presente, Pagamento
+from .decorators import guest_required
 
 
 def get_sdk():
@@ -16,6 +17,7 @@ def get_sdk():
     return mercadopago.SDK(token)
 
 
+@guest_required
 def home(request):
     """Render the wedding homepage for Aline and Hugo."""
     context = {
@@ -29,6 +31,7 @@ def home(request):
     return render(request, 'index.html', context)
 
 
+@guest_required
 def presente(request):
     """Render the gift registry page."""
     presentes = Presente.objects.all()
@@ -39,6 +42,7 @@ def presente(request):
     return render(request, 'presente.html', context)
 
 
+@guest_required
 def iniciar_pagamento(request, presente_id):
     """
     Inicia o processo de pagamento criando uma preferência no Mercado Pago
@@ -163,6 +167,7 @@ def webhook_mercadopago(request):
         return HttpResponse("OK", status=200)
 
 
+@guest_required
 def pagamento_sucesso(request):
     """Página de sucesso após pagamento"""
     payment_id = request.GET.get('payment_id')
@@ -174,6 +179,7 @@ def pagamento_sucesso(request):
     return render(request, 'pagamento/sucesso.html', context)
 
 
+@guest_required
 def pagamento_erro(request):
     """Página de erro após pagamento"""
     context = {
@@ -183,6 +189,7 @@ def pagamento_erro(request):
     return render(request, 'pagamento/erro.html', context)
 
 
+@guest_required
 def pagamento_pendente(request):
     """Página de pagamento pendente"""
     context = {

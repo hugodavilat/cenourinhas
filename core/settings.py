@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'otp',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +137,6 @@ MERCADO_PAGO_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN")
 
 # Site base URL (mude isso para seu domínio em produção)
 SITE_URL = os.getenv("URL_SITE", "http://localhost:8000")
+
+WHATSAPP_SERVER_URL = os.getenv("WHATSAPP_SERVER_URL", "http://localhost:8081") 
+
