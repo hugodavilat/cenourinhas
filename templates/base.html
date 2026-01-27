@@ -57,6 +57,9 @@
         <div class="collapse navbar-collapse" id="nav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item"><a class="nav-link" href="#sobre">Início</a></li>
+            {% if request.session.guest_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Sair</a></li>
+            {% endif %}
           </ul>
         </div>
       </div>

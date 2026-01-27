@@ -19,8 +19,8 @@
             <div class="card otp-card p-4">
                 <div class="text-center mb-4">
                     <div class="display-6 text-primary mb-2"><i class="bi bi-shield-lock"></i></div>
-                    <h2 class="fw-bold">Verify Identity</h2>
-                    <p class="text-muted">We sent a 6-digit code to your WhatsApp. Please enter it below.</p>
+                    <h2 class="fw-bold">Verificar Identidade</h2>
+                    <p class="text-muted">Enviamos um código de 6 dígitos para seu WhatsApp. Por favor, digite-o abaixo.</p>
                 </div>
 
                 <form method="POST" novalidate>
@@ -41,26 +41,26 @@
                                    maxlength="6"
                                    autocomplete="one-time-code">
                             {% for error in field.errors %}
-                                <div class="invalid-feedback d-block text-center mt-2"><strong>Error:</strong> {{ error }}</div>
+                                <div class="invalid-feedback d-block text-center mt-2"><strong>Erro:</strong> {{ error }}</div>
                             {% endfor %}
                         </div>
                     {% endfor %}
 
                     <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mb-3">
-                        Verify & Login
+                        Verificar e Fazer Login
                     </button>
                 </form>
 
                 <div class="text-center">
-                    <p class="mb-1 text-muted">Didn't receive the code?</p>
-                    <div id="timer" class="small fw-bold text-primary">Resend available in <span id="seconds">30</span>s</div>
-                    <a href="{% url 'login_phone' %}" id="resend-link" class="btn btn-link btn-sm d-none">Resend Code</a>
+                    <p class="mb-1 text-muted">Não recebeu o código?</p>
+                    <div id="timer" class="small fw-bold text-primary">Reenviar disponível em <span id="seconds">30</span>s</div>
+                    <a href="{% url 'login_phone' %}" id="resend-link" class="btn btn-link btn-sm d-none">Reenviar Código</a>
                 </div>
             </div>
             
             <div class="text-center mt-3">
                 <a href="{% url 'login_phone' %}" class="text-decoration-none text-muted small">
-                    <i class="bi bi-chevron-left"></i> Use a different number
+                    <i class="bi bi-chevron-left"></i> Usar um número diferente
                 </a>
             </div>
         </div>

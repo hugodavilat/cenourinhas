@@ -47,6 +47,10 @@ class Guest(models.Model):
     phone_number = models.CharField(max_length=20, unique=True)
     is_confirmed = models.BooleanField(default=False)
     message_sent = models.BooleanField(default=False)
+    # Track the session key currently associated with this guest (one active session)
+    active_session_key = models.CharField(max_length=40, null=True, blank=True)
+    # When the active session expires; used to allow new logins after timeout
+    active_until = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name

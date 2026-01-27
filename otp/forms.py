@@ -1,7 +1,99 @@
 from django import forms
 
+# Country codes commonly used for events/invitations
+COUNTRY_CHOICES = [
+    ("55", "Brasil (+55)"),
+    ("1", "Estados Unidos/Canadá (+1)"),
+    ("44", "Reino Unido (+44)"),
+    ("33", "França (+33)"),
+    ("34", "Espanha (+34)"),
+    ("39", "Itália (+39)"),
+    ("49", "Alemanha (+49)"),
+    ("351", "Portugal (+351)"),
+    ("57", "Colômbia (+57)"),
+    ("54", "Argentina (+54)"),
+    ("56", "Chile (+56)"),
+    ("52", "México (+52)"),
+    ("591", "Bolívia (+591)"),
+    ("595", "Paraguai (+595)"),
+    ("598", "Uruguai (+598)"),
+    ("51", "Peru (+51)"),
+    ("58", "Venezuela (+58)"),
+    ("593", "Equador (+593)"),
+    ("592", "Guiana (+592)"),
+    ("597", "Surinam (+597)"),
+    ("31", "Holanda (+31)"),
+    ("32", "Bélgica (+32)"),
+    ("43", "Áustria (+43)"),
+    ("41", "Suíça (+41)"),
+    ("45", "Dinamarca (+45)"),
+    ("46", "Suécia (+46)"),
+    ("47", "Noruega (+47)"),
+    ("358", "Finlândia (+358)"),
+    ("48", "Polônia (+48)"),
+    ("420", "República Tcheca (+420)"),
+    ("36", "Hungria (+36)"),
+    ("40", "Romênia (+40)"),
+    ("359", "Bulgária (+359)"),
+    ("385", "Croácia (+385)"),
+    ("30", "Grécia (+30)"),
+    ("212", "Marrocos (+212)"),
+    ("234", "Nigéria (+234)"),
+    ("27", "África do Sul (+27)"),
+    ("254", "Quênia (+254)"),
+    ("256", "Uganda (+256)"),
+    ("212", "Argélia (+212)"),
+    ("20", "Egito (+20)"),
+    ("216", "Tunísia (+216)"),
+    ("90", "Turquia (+90)"),
+    ("972", "Israel (+972)"),
+    ("966", "Arábia Saudita (+966)"),
+    ("971", "Emirados Árabes Unidos (+971)"),
+    ("974", "Qatar (+974)"),
+    ("973", "Bahrein (+973)"),
+    ("965", "Kuwait (+965)"),
+    ("968", "Omã (+968)"),
+    ("967", "Iêmen (+967)"),
+    ("962", "Jordânia (+962)"),
+    ("963", "Síria (+963)"),
+    ("961", "Líbano (+961)"),
+    ("92", "Paquistão (+92)"),
+    ("91", "Índia (+91)"),
+    ("880", "Bangladesh (+880)"),
+    ("94", "Sri Lanka (+94)"),
+    ("66", "Tailândia (+66)"),
+    ("60", "Malásia (+60)"),
+    ("65", "Singapura (+65)"),
+    ("62", "Indonésia (+62)"),
+    ("63", "Filipinas (+63)"),
+    ("84", "Vietnã (+84)"),
+    ("855", "Camboja (+855)"),
+    ("886", "Taiwan (+886)"),
+    ("852", "Hong Kong (+852)"),
+    ("853", "Macau (+853)"),
+    ("81", "Japão (+81)"),
+    ("82", "Coreia do Sul (+82)"),
+    ("86", "China (+86)"),
+    ("61", "Austrália (+61)"),
+    ("64", "Nova Zelândia (+64)"),
+    ("683", "Nauru (+683)"),
+    ("688", "Tuvalu (+688)"),
+]
+
 class PhoneForm(forms.Form):
-    phone = forms.CharField(label="Telefone")
+    country_code = forms.ChoiceField(
+        choices=COUNTRY_CHOICES,
+        initial="55",
+        label="País",
+        widget=forms.Select(attrs={"class": "form-select form-select-lg"})
+    )
+    phone = forms.CharField(
+        label="Telefone",
+        widget=forms.TextInput(attrs={
+            "placeholder": "11 9 8765 4321",
+            "class": "form-control form-control-lg"
+        })
+    )
 
 class OTPForm(forms.Form):
     code = forms.CharField(label="Código")

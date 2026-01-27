@@ -20,8 +20,8 @@
             <div class="card login-card p-4">
                 <div class="text-center mb-4">
                     <div class="display-6 text-success mb-2"><i class="bi bi-whatsapp"></i></div>
-                    <h2 class="fw-bold">Welcome Back</h2>
-                    <p class="text-muted">Enter your phone number to receive a secure login code.</p>
+                    <h2 class="fw-bold">Bem-vindo de Volta</h2>
+                    <p class="text-muted">Digite seu número de telefone para receber um código de login seguro.</p>
                 </div>
 
                 <form method="POST" novalidate>
@@ -33,26 +33,31 @@
                         </div>
                     {% endif %}
 
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">{{ field.label }}</label>
-                            <input type="{{ field.field.widget.input_type }}" 
-                                   name="{{ field.name }}" 
-                                   class="form-control form-control-lg {% if field.errors %}is-invalid{% endif %}" 
-                                   placeholder="e.g. +1 234 567 890">
-                            {% for error in field.errors %}
-                                <div class="invalid-feedback d-block">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
+                    <!-- Country Code Field -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.country_code.label }}</label>
+                        {{ form.country_code }}
+                        {% for error in form.country_code.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Phone Number Field -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.phone.label }}</label>
+                        {{ form.phone }}
+                        {% for error in form.phone.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
 
                     <button type="submit" class="btn btn-whatsapp btn-lg w-100 mt-3 shadow-sm">
-                        Send Secure Code <i class="bi bi-arrow-right ms-2"></i>
+                        Enviar Código Seguro <i class="bi bi-arrow-right ms-2"></i>
                     </button>
                 </form>
                 
                 <div class="text-center mt-4">
-                    <small class="text-muted">By continuing, you agree to receive a one-time message.</small>
+                    <small class="text-muted">Ao continuar, você concorda em receber uma mensagem única.</small>
                 </div>
             </div>
         </div>
