@@ -46,6 +46,8 @@ class Guest(models.Model):
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20, unique=True)
     is_confirmed = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
+    not_answered = models.BooleanField(default=True)
     message_sent = models.BooleanField(default=False)
     # Track the session key currently associated with this guest (one active session)
     active_session_key = models.CharField(max_length=40, null=True, blank=True)
@@ -54,3 +56,16 @@ class Guest(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# Extra guests attached to a main guest
+class ExtraGuest(models.Model):
+    main_guest = models.ForeignKey(Guest, on_delete=models.CASCADE, related_name='extra_guests')
+    name = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
+    is_confirmed = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
+    not_answered = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name} (Extra of {self.main_guest.name})"

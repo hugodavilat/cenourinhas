@@ -59,22 +59,22 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Início</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'presente' %}">Presentes</a></li>
             {% if request.session.guest_authenticated %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'confirmacao_familia' %}">Confirmação</a></li>
               {% if request.session.is_admin %}
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Admin
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                  <li><a class="dropdown-item" href="{% url 'wedding_admin' %}">Dashboard</a></li>
-                  <li><a class="dropdown-item" href="{% url 'admin_add_presente' %}">Adicionar Presente</a></li>
-                  <li><a class="dropdown-item" href="{% url 'admin_add_guest' %}">Adicionar Convidado</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Sair do Admin</a></li>
-                </ul>
-              </li>
-              {% else %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Sair</a></li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Admin
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                    <li><a class="dropdown-item" href="{% url 'wedding_admin' %}">Dashboard</a></li>
+                    <li><a class="dropdown-item" href="{% url 'admin_add_presente' %}">Adicionar Presente</a></li>
+                    <li><a class="dropdown-item" href="{% url 'admin_add_guest' %}">Adicionar Convidado</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger mt-3" href="{% url 'logout' %}">Sair do Admin</a></li>
+                  </ul>
+                </li>
               {% endif %}
+              <li class="nav-item ms-3"><a class="nav-link text-danger fw-semibold" href="{% url 'logout' %}">Sair</a></li>
             {% endif %}
           </ul>
         </div>

@@ -4,8 +4,8 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import mercadopago
-from .forms import PresenteForm, PagamentoForm, GuestForm
-from .models import Presente, Pagamento, Guest
+from .forms import PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm
+from .models import Presente, Pagamento, Guest, ExtraGuest
 from .decorators import guest_required, wedding_admin_required
 
 
@@ -294,3 +294,98 @@ def admin_delete_guest(request, pk):
         guest.delete()
         return redirect('wedding_admin')
     return render(request, 'admin/confirm_delete.html', {'object': guest, 'type': 'Convidado'})
+
+# CRUD for ExtraGuest
+@wedding_admin_required
+def admin_add_extra_guest(request, main_guest_id):
+    main_guest = get_object_or_404(Guest, pk=main_guest_id)
+    if request.method == 'POST':
+        form = ExtraGuestForm(request.POST)
+        if form.is_valid():
+            extra = form.save(commit=False)
+            extra.main_guest = main_guest
+            extra.save()
+            return redirect('admin_edit_guest', pk=main_guest.id)
+    else:
+        form = ExtraGuestForm()
+    return render(request, 'admin/form.html', {'form': form, 'title': f'Adicionar Extra para {main_guest.name}'})
+
+@wedding_admin_required
+def admin_edit_extra_guest(request, pk):
+    extra = get_object_or_404(ExtraGuest, pk=pk)
+    if request.method == 'POST':
+        form = ExtraGuestForm(request.POST, instance=extra)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_edit_guest', pk=extra.main_guest.id)
+    else:
+        form = ExtraGuestForm(instance=extra)
+    return render(request, 'admin/form.html', {'form': form, 'title': f'Editar Extra de {extra.main_guest.name}'})
+
+@wedding_admin_required
+def admin_delete_extra_guest(request, pk):
+    extra = get_object_or_404(ExtraGuest, pk=pk)
+    main_guest_id = extra.main_guest.id
+    if request.method == 'POST':
+        extra.delete()
+        return redirect('admin_edit_guest', pk=main_guest_id)
+    return render(request, 'admin/confirm_delete.html', {'object': extra, 'type': 'Convidado Extra'})
+
+@guest_required
+def confirmacao_familia(request):
+    from .models import ExtraGuest
+    user_id = request.session.get("otp_user_id")
+    is_extra = request.session.get("is_extra_guest_login", False)
+    extra_guest_phone = request.session.get("extra_guest_phone")
+
+    if is_extra and extra_guest_phone:
+        main_guest = Guest.objects.get(id=user_id)
+        extra_guest = ExtraGuest.objects.get(phone_number=extra_guest_phone, main_guest=main_guest)
+    else:
+        main_guest = Guest.objects.get(id=user_id)
+        extra_guest = None
+
+    # Sempre busca o estado atualizado do banco
+    main_guest.refresh_from_db()
+    extras = main_guest.extra_guests.all()
+    msg = None
+    success = False
+    if request.method == "POST":
+        updated = False
+        # Principal
+        if f"confirm_{main_guest.id}" in request.POST:
+            confirm = request.POST.get(f"confirm_{main_guest.id}") == "1"
+            if confirm:
+                main_guest.is_confirmed = True
+                main_guest.is_rejected = False
+                main_guest.not_answered = False
+                msg = f"Presença de {main_guest.name} confirmada!"
+            else:
+                main_guest.is_confirmed = False
+                main_guest.is_rejected = True
+                main_guest.not_answered = False
+                msg = f"Presença de {main_guest.name} rejeitada!"
+            main_guest.save()
+            updated = True
+        # Extras
+        for extra in extras:
+            if f"confirm_extra_{extra.id}" in request.POST:
+                confirm = request.POST.get(f"confirm_extra_{extra.id}") == "1"
+                if confirm:
+                    extra.is_confirmed = True
+                    extra.is_rejected = False
+                    extra.not_answered = False
+                    msg = f"Presença de {extra.name} confirmada!"
+                else:
+                    extra.is_confirmed = False
+                    extra.is_rejected = True
+                    extra.not_answered = False
+                    msg = f"Presença de {extra.name} rejeitada!"
+                extra.save()
+                updated = True
+        if updated:
+            success = True
+        # Atualiza os objetos após salvar
+        main_guest.refresh_from_db()
+        extras = main_guest.extra_guests.all()
+    return render(request, "confirmacao_familia.html", {"main_guest": main_guest, "extras": extras, "success": success, "msg": msg})

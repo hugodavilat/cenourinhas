@@ -52,12 +52,14 @@ def guest_required(view_func):
             return redirect('login_phone')
 
         # Allow admins by phone even if not confirmed
-        if guest.phone_number in ADMIN_PHONES:
-            return view_func(request, *args, **kwargs)
+        # if guest.phone_number in ADMIN_PHONES:
+        #     return view_func(request, *args, **kwargs)
 
-        # Guest must be confirmed
-        if not guest.is_confirmed:
-            return redirect('login_phone')
+        # Permite acesso à página de confirmação mesmo se não confirmado
+        # if not guest.is_confirmed:
+        #     if request.resolver_match and request.resolver_match.url_name == "confirmacao_familia":
+        #         return view_func(request, *args, **kwargs)
+        #     return redirect('login_phone')
 
         # Ensure session key matches the guest's active session and is still valid
         session_key = request.session.session_key

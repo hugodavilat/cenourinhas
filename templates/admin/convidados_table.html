@@ -16,15 +16,50 @@
       <tr>
         <td>{{ guest.name }}</td>
         <td>{{ guest.phone_number }}</td>
-        <td>{% if guest.is_confirmed %}<span class="badge bg-success">Sim</span>{% else %}<span class="badge bg-secondary">Não</span>{% endif %}</td>
+        <td>
+          {% if guest.is_confirmed %}
+            <span class="badge bg-success">Confirmado</span>
+          {% elif guest.is_rejected %}
+            <span class="badge bg-danger">Rejeitado</span>
+          {% elif guest.not_answered %}
+            <span class="badge bg-dark">Não Respondeu</span>
+          {% else %}
+            <span class="badge bg-secondary">-</span>
+          {% endif %}
+        </td>
         <td>{% if guest.message_sent %}<span class="badge bg-success">Sim</span>{% else %}<span class="badge bg-secondary">Não</span>{% endif %}</td>
         <td>{{ guest.active_session_key }}</td>
         <td>{{ guest.active_until|date:'d/m/Y H:i' }}</td>
         <td>
           <a href="{% url 'admin_edit_guest' guest.id %}" class="btn btn-sm btn-primary">Editar</a>
           <a href="{% url 'admin_delete_guest' guest.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</a>
+          <a href="{% url 'admin_add_extra_guest' guest.id %}" class="btn btn-sm btn-success ms-1">Adicionar Extra</a>
         </td>
       </tr>
+      {% for extra in guest.extra_guests.all %}
+      <tr class="table-secondary">
+        <td>↳ {{ extra.name }}</td>
+        <td>{{ extra.phone_number }}</td>
+        <td>
+          {% if extra.is_confirmed %}
+            <span class="badge bg-success">Confirmado</span>
+          {% elif extra.is_rejected %}
+            <span class="badge bg-danger">Rejeitado</span>
+          {% elif extra.not_answered %}
+            <span class="badge bg-dark">Não Respondeu</span>
+          {% else %}
+            <span class="badge bg-secondary">-</span>
+          {% endif %}
+        </td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>
+          <a href="{% url 'admin_edit_extra_guest' extra.id %}" class="btn btn-sm btn-primary">Editar</a>
+          <a href="{% url 'admin_delete_extra_guest' extra.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</a>
+        </td>
+      </tr>
+      {% endfor %}
       {% endfor %}
     </tbody>
   </table>

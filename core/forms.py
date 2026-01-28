@@ -1,5 +1,5 @@
 from django import forms
-from .models import Presente, Pagamento, Guest
+from .models import Presente, Pagamento, Guest, ExtraGuest
 
 class PresenteForm(forms.ModelForm):
     class Meta:
@@ -15,3 +15,8 @@ class GuestForm(forms.ModelForm):
     class Meta:
         model = Guest
         fields = ['name', 'phone_number', 'is_confirmed', 'message_sent', 'active_session_key', 'active_until']
+
+class ExtraGuestForm(forms.ModelForm):
+    class Meta:
+        model = ExtraGuest
+        fields = ['name', 'phone_number', 'is_confirmed']
