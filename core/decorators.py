@@ -18,7 +18,16 @@ if list_string:
 def wedding_admin_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        user_phone = request.user.phone_number 
+        guest_id = request.session.get("otp_user_id")
+        if not guest_id:
+            return redirect('login_phone')
+        try:
+            guest = Guest.objects.get(id=guest_id)
+        except Guest.DoesNotExist:
+            return redirect('login_phone')
+        user_phone = guest.phone_number
+        print("ADMIN_PHONES:", ADMIN_PHONES)
+        print(f"wedding_admin_required: checking access for phone {user_phone}")
         if user_phone in ADMIN_PHONES:
             return view_func(request, *args, **kwargs)
         return redirect('home') # Send intruders back to the main page

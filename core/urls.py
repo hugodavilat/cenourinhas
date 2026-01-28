@@ -27,5 +27,16 @@ urlpatterns = [
     path('pagamento/pendente/', views.pagamento_pendente, name='pagamento_pendente'),
     path('webhook/mercadopago/', views.webhook_mercadopago, name='webhook_mercadopago'),
     path("otp/", include("otp.urls")),
-    path('admin/', admin.site.urls), 
+    path('admin/', admin.site.urls),
+
+    # Custom admin dashboard and CRUD
+    path('wedding-admin/', views.wedding_admin_dashboard, name='wedding_admin'),
+    path('wedding-admin/presente/add/', views.admin_add_presente, name='admin_add_presente'),
+    path('wedding-admin/presente/<int:pk>/edit/', views.admin_edit_presente, name='admin_edit_presente'),
+    path('wedding-admin/presente/<int:pk>/delete/', views.admin_delete_presente, name='admin_delete_presente'),
+    path('wedding-admin/pagamento/<int:pk>/edit/', views.admin_edit_pagamento, name='admin_edit_pagamento'),
+    path('wedding-admin/pagamento/<int:pk>/delete/', views.admin_delete_pagamento, name='admin_delete_pagamento'),
+    path('wedding-admin/guest/add/', views.admin_add_guest, name='admin_add_guest'),
+    path('wedding-admin/guest/<int:pk>/edit/', views.admin_edit_guest, name='admin_edit_guest'),
+    path('wedding-admin/guest/<int:pk>/delete/', views.admin_delete_guest, name='admin_delete_guest'),
 ]

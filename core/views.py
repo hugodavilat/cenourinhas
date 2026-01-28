@@ -4,9 +4,9 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import mercadopago
-
-from .models import Presente, Pagamento
-from .decorators import guest_required
+from .forms import PresenteForm, PagamentoForm, GuestForm
+from .models import Presente, Pagamento, Guest
+from .decorators import guest_required, wedding_admin_required
 
 
 def get_sdk():
@@ -197,3 +197,100 @@ def pagamento_pendente(request):
         'mensagem': 'Seu pagamento está sendo processado. Você receberá uma confirmação em breve.'
     }
     return render(request, 'pagamento/pendente.html', context)
+
+# Admin dashboard view
+@wedding_admin_required
+def wedding_admin_dashboard(request):
+    presentes = Presente.objects.all()
+    pagamentos = Pagamento.objects.select_related('presente').all()
+    guests = Guest.objects.all()
+    return render(request, 'admin_dashboard.html', {
+        'presentes': presentes,
+        'pagamentos': pagamentos,
+        'guests': guests,
+    })
+
+# CRUD for Presente
+@wedding_admin_required
+def admin_add_presente(request):
+    if request.method == 'POST':
+        form = PresenteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('wedding_admin')
+    else:
+        form = PresenteForm()
+    return render(request, 'admin/form.html', {'form': form, 'title': 'Adicionar Presente'})
+
+@wedding_admin_required
+def admin_edit_presente(request, pk):
+    presente = get_object_or_404(Presente, pk=pk)
+    if request.method == 'POST':
+        form = PresenteForm(request.POST, instance=presente)
+        if form.is_valid():
+            form.save()
+            return redirect('wedding_admin')
+    else:
+        form = PresenteForm(instance=presente)
+    return render(request, 'admin/form.html', {'form': form, 'title': 'Editar Presente'})
+
+@wedding_admin_required
+def admin_delete_presente(request, pk):
+    presente = get_object_or_404(Presente, pk=pk)
+    if request.method == 'POST':
+        presente.delete()
+        return redirect('wedding_admin')
+    return render(request, 'admin/confirm_delete.html', {'object': presente, 'type': 'Presente'})
+
+# CRUD for Pagamento (edit/delete only)
+@wedding_admin_required
+def admin_edit_pagamento(request, pk):
+    pagamento = get_object_or_404(Pagamento, pk=pk)
+    if request.method == 'POST':
+        form = PagamentoForm(request.POST, instance=pagamento)
+        if form.is_valid():
+            form.save()
+            return redirect('wedding_admin')
+    else:
+        form = PagamentoForm(instance=pagamento)
+    return render(request, 'admin/form.html', {'form': form, 'title': 'Editar Pagamento'})
+
+@wedding_admin_required
+def admin_delete_pagamento(request, pk):
+    pagamento = get_object_or_404(Pagamento, pk=pk)
+    if request.method == 'POST':
+        pagamento.delete()
+        return redirect('wedding_admin')
+    return render(request, 'admin/confirm_delete.html', {'object': pagamento, 'type': 'Pagamento'})
+
+# CRUD for Guest
+@wedding_admin_required
+def admin_add_guest(request):
+    if request.method == 'POST':
+        form = GuestForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('wedding_admin')
+    else:
+        form = GuestForm()
+    return render(request, 'admin/form.html', {'form': form, 'title': 'Adicionar Convidado'})
+
+@wedding_admin_required
+def admin_edit_guest(request, pk):
+    guest = get_object_or_404(Guest, pk=pk)
+    if request.method == 'POST':
+        form = GuestForm(request.POST, instance=guest)
+        if form.is_valid():
+            form.save()
+            return redirect('wedding_admin')
+    else:
+        form = GuestForm(instance=guest)
+    return render(request, 'admin/form.html', {'form': form, 'title': 'Editar Convidado'})
+
+@wedding_admin_required
+def admin_delete_guest(request, pk):
+    guest = get_object_or_404(Guest, pk=pk)
+    if request.method == 'POST':
+        guest.delete()
+        return redirect('wedding_admin')
+    return render(request, 'admin/confirm_delete.html', {'object': guest, 'type': 'Convidado'})

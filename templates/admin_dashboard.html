@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Administração do Casamento{% endblock %}
+{% block content %}
+<div class="section-inner accent-bg rounded shadow">
+  <h2 class="display-font accent">Administração do Banco de Dados</h2>
+  <p class="mb-4">Gerencie os dados do casamento de forma fácil e rápida. Adicione, edite ou exclua registros das tabelas abaixo.</p>
+  <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="presentes-tab" data-bs-toggle="tab" data-bs-target="#presentes" type="button" role="tab">Presentes</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="pagamentos-tab" data-bs-toggle="tab" data-bs-target="#pagamentos" type="button" role="tab">Pagamentos</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="convidados-tab" data-bs-toggle="tab" data-bs-target="#convidados" type="button" role="tab">Convidados</button>
+    </li>
+  </ul>
+  <div class="tab-content" id="adminTabContent">
+    <div class="tab-pane fade show active" id="presentes" role="tabpanel">
+      {% include 'admin/presentes_table.html' %}
+    </div>
+    <div class="tab-pane fade" id="pagamentos" role="tabpanel">
+      {% include 'admin/pagamentos_table.html' %}
+    </div>
+    <div class="tab-pane fade" id="convidados" role="tabpanel">
+      {% include 'admin/convidados_table.html' %}
+    </div>
+  </div>
+</div>
+{% endblock %}
