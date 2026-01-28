@@ -21,3 +21,28 @@ def send_whatsapp_otp(phone, code):
     except requests.exceptions.RequestException as exc:
         logger.exception("Failed sending OTP to WhatsApp service: %s", exc)
         return False
+
+def send_whatsapp_message(phone, message, image=None):
+    url = settings.WHATSAPP_SERVER_URL  # set in settings
+    phone = phone.lstrip("+")  # remove leading +
+    if image:
+        # Send as multipart/form-data
+        files = {"image": image}
+        data = {"phone": phone, "message": message}
+        try:
+            r = requests.post(url + "/send_message", data=data, files=files, timeout=15)
+            r.raise_for_status()
+            return True
+        except requests.exceptions.RequestException as exc:
+            logger.exception("Failed sending OTP to WhatsApp service: %s", exc)
+            return False
+    else:
+        # Send as JSON
+        payload = {"phone": phone, "message": message}
+        try:
+            r = requests.post(url + "/send_message", json=payload, timeout=15)
+            r.raise_for_status()
+            return True
+        except requests.exceptions.RequestException as exc:
+            logger.exception("Failed sending OTP to WhatsApp service: %s", exc)
+            return False

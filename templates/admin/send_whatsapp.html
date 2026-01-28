@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .guest-list-container { max-height: 500px; overflow-y: auto; border-radius: 8px; }
+    .sticky-top-custom { position: sticky; top: 0; background: white; z-index: 10; border-bottom: 2px solid #eee; padding: 10px 0; }
+    .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .table-hover tbody tr:hover { background-color: #f8f9fa; cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card p-4 mb-4">
+                <h3 class="mb-4"><i class="bi bi-whatsapp text-success"></i> Conteúdo da Mensagem</h3>
+                <form method="post" enctype="multipart/form-data" id="mainForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mensagem</label>
+                        {{ form.message }} </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Imagem (Opcional)</label>
+                        <input type="file" name="image" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm">
+                        <i class="bi bi-send-fill"></i> Enviar Mensagem
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3>Convidados ({{ guests|length }})</h3>
+                    <div class="d-flex gap-2">
+                        <form method="get" class="d-flex gap-2">
+                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Todos Status</option>
+                                <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmados</option>
+                                <option value="not_answered" {% if selected_status == 'not_answered' %}selected{% endif %}>Pendente</option>
+                                <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Recusado</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" id="guestSearch" class="form-control" placeholder="Buscar por nome...">
+                </div>
+
+                <div class="guest-list-container border">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="sticky-top-custom">
+                            <tr>
+                                <th width="40" class="ps-3">
+                                    <input type="checkbox" class="form-check-input" id="selectAll">
+                                </th>
+                                <th>Nome / Telefone</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guestTableBody">
+                            {% for guest in guests %}
+                            <tr>
+                                <td class="ps-3">
+                                    <input type="checkbox" name="selected_guests" value="{{ guest.id }}" 
+                                           form="mainForm" class="form-check-input guest-checkbox"
+                                           {% if guest.id in selected_guests %}checked{% endif %}>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ guest.name }}</div>
+                                    <small class="text-muted">{{ guest.phone_number }}</small>
+                                </td>
+                                <td class="text-center">
+                                    {% if guest.is_confirmed %}
+                                        <span class="badge rounded-pill bg-success-subtle text-success border border-success">Confirmado</span>
+                                    {% elif guest.is_rejected %}
+                                        <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger">Recusado</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning">Pendente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-4">Nenhum convidado encontrado.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="mt-3">
+                <a href="/admin/" class="btn btn-link text-decoration-none text-muted p-0"><i class="bi bi-arrow-left"></i> Voltar ao painel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Select All Logic
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.guest-checkbox');
+        checkboxes.forEach(cb => {
+            if (cb.closest('tr').style.display !== 'none') {
+                cb.checked = this.checked;
+            }
+        });
+    });
+
+    // 2. Real-time Search Filter
+    document.getElementById('guestSearch').addEventListener('keyup', function() {
+        const value = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#guestTableBody tr');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

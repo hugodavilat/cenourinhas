@@ -20,3 +20,7 @@ class ExtraGuestForm(forms.ModelForm):
     class Meta:
         model = ExtraGuest
         fields = ['name', 'phone_number', 'is_confirmed']
+
+class WhatsAppMessageForm(forms.Form):
+    message = forms.CharField(widget=forms.Textarea, required=True, label="Mensagem WhatsApp")
+    image = forms.ImageField(required=False, label="Imagem (opcional)")

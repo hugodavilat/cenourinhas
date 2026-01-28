@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4 shadow-sm">
+                <h2 class="mb-4 text-success"><i class="bi bi-whatsapp"></i> Mensagens Enviadas com Sucesso!</h2>
+                <p class="lead">As mensagens foram enviadas para os convidados abaixo:</p>
+                <ul class="list-group mb-4">
+                    {% for guest in sent_guests %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>{{ guest.name }}</strong>
+                            <small class="text-muted ms-2">{{ guest.phone_number }}</small>
+                        </span>
+                        <span class="badge bg-success">Enviado</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'send_whatsapp_mass' %}" class="btn btn-outline-primary">Voltar para Envio em Massa</a>
+                <a href="{% url 'wedding_admin' %}" class="btn btn-link">Voltar ao Painel</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

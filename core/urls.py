@@ -27,6 +27,7 @@ urlpatterns = [
     path('pagamento/pendente/', views.pagamento_pendente, name='pagamento_pendente'),
     path('webhook/mercadopago/', views.webhook_mercadopago, name='webhook_mercadopago'),
     path("otp/", include("otp.urls")),
+    path('confirmacao/', views.confirmacao_familia, name='confirmacao_familia'),
     path('admin/', admin.site.urls),
 
     # Custom admin dashboard and CRUD
@@ -42,5 +43,5 @@ urlpatterns = [
     path('wedding-admin/guest/<int:main_guest_id>/extra/add/', views.admin_add_extra_guest, name='admin_add_extra_guest'),
     path('wedding-admin/extra/<int:pk>/edit/', views.admin_edit_extra_guest, name='admin_edit_extra_guest'),
     path('wedding-admin/extra/<int:pk>/delete/', views.admin_delete_extra_guest, name='admin_delete_extra_guest'),
-    path('confirmacao/', views.confirmacao_familia, name='confirmacao_familia'),
+    path("wedding-admin/send-whatsapp/", views.send_whatsapp_mass, name="send_whatsapp_mass"),
 ]

@@ -1,10 +1,16 @@
+import mercadopago
+import requests
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-import mercadopago
-from .forms import PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm
+from django.contrib import messages
+from django.urls import reverse
+from otp.services import send_whatsapp_message
+
+from .forms import WhatsAppMessageForm, PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm
 from .models import Presente, Pagamento, Guest, ExtraGuest
 from .decorators import guest_required, wedding_admin_required
 
@@ -198,6 +204,65 @@ def pagamento_pendente(request):
     }
     return render(request, 'pagamento/pendente.html', context)
 
+@guest_required
+def confirmacao_familia(request):
+    from .models import ExtraGuest
+    user_id = request.session.get("otp_user_id")
+    is_extra = request.session.get("is_extra_guest_login", False)
+    extra_guest_phone = request.session.get("extra_guest_phone")
+
+    if is_extra and extra_guest_phone:
+        main_guest = Guest.objects.get(id=user_id)
+        extra_guest = ExtraGuest.objects.get(phone_number=extra_guest_phone, main_guest=main_guest)
+    else:
+        main_guest = Guest.objects.get(id=user_id)
+        extra_guest = None
+
+    # Sempre busca o estado atualizado do banco
+    main_guest.refresh_from_db()
+    extras = main_guest.extra_guests.all()
+    msg = None
+    success = False
+    if request.method == "POST":
+        updated = False
+        # Principal
+        if f"confirm_{main_guest.id}" in request.POST:
+            confirm = request.POST.get(f"confirm_{main_guest.id}") == "1"
+            if confirm:
+                main_guest.is_confirmed = True
+                main_guest.is_rejected = False
+                main_guest.not_answered = False
+                msg = f"Presença de {main_guest.name} confirmada!"
+            else:
+                main_guest.is_confirmed = False
+                main_guest.is_rejected = True
+                main_guest.not_answered = False
+                msg = f"Presença de {main_guest.name} rejeitada!"
+            main_guest.save()
+            updated = True
+        # Extras
+        for extra in extras:
+            if f"confirm_extra_{extra.id}" in request.POST:
+                confirm = request.POST.get(f"confirm_extra_{extra.id}") == "1"
+                if confirm:
+                    extra.is_confirmed = True
+                    extra.is_rejected = False
+                    extra.not_answered = False
+                    msg = f"Presença de {extra.name} confirmada!"
+                else:
+                    extra.is_confirmed = False
+                    extra.is_rejected = True
+                    extra.not_answered = False
+                    msg = f"Presença de {extra.name} rejeitada!"
+                extra.save()
+                updated = True
+        if updated:
+            success = True
+        # Atualiza os objetos após salvar
+        main_guest.refresh_from_db()
+        extras = main_guest.extra_guests.all()
+    return render(request, "confirmacao_familia.html", {"main_guest": main_guest, "extras": extras, "success": success, "msg": msg})
+
 # Admin dashboard view
 @wedding_admin_required
 def wedding_admin_dashboard(request):
@@ -331,61 +396,72 @@ def admin_delete_extra_guest(request, pk):
         return redirect('admin_edit_guest', pk=main_guest_id)
     return render(request, 'admin/confirm_delete.html', {'object': extra, 'type': 'Convidado Extra'})
 
-@guest_required
-def confirmacao_familia(request):
-    from .models import ExtraGuest
-    user_id = request.session.get("otp_user_id")
-    is_extra = request.session.get("is_extra_guest_login", False)
-    extra_guest_phone = request.session.get("extra_guest_phone")
+@wedding_admin_required
+def send_whatsapp_mass(request):
+    selected_status = request.POST.get("status", request.GET.get("status", "all"))
+    selected_guests = request.POST.getlist("selected_guests") if request.method == "POST" else []
 
-    if is_extra and extra_guest_phone:
-        main_guest = Guest.objects.get(id=user_id)
-        extra_guest = ExtraGuest.objects.get(phone_number=extra_guest_phone, main_guest=main_guest)
-    else:
-        main_guest = Guest.objects.get(id=user_id)
-        extra_guest = None
+    # Filter guests by status
+    # Filtra apenas convidados com telefone preenchido
+    guests = Guest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
+    if selected_status == "confirmed":
+        guests = guests.filter(is_confirmed=True)
+    elif selected_status == "not_answered":
+        guests = guests.filter(not_answered=True)
+    elif selected_status == "rejected":
+        guests = guests.filter(is_rejected=True)
 
-    # Sempre busca o estado atualizado do banco
-    main_guest.refresh_from_db()
-    extras = main_guest.extra_guests.all()
-    msg = None
-    success = False
+    # Get ExtraGuests with phone numbers
+    extra_guests = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
+    # Optionally filter extra guests by status
+    if selected_status == "confirmed":
+        extra_guests = extra_guests.filter(is_confirmed=True)
+    elif selected_status == "not_answered":
+        extra_guests = extra_guests.filter(not_answered=True)
+    elif selected_status == "rejected":
+        extra_guests = extra_guests.filter(is_rejected=True)
+
+    # Combine guests and extra_guests into a single list
+    all_guests = list(guests) + list(extra_guests)
+
     if request.method == "POST":
-        updated = False
-        # Principal
-        if f"confirm_{main_guest.id}" in request.POST:
-            confirm = request.POST.get(f"confirm_{main_guest.id}") == "1"
-            if confirm:
-                main_guest.is_confirmed = True
-                main_guest.is_rejected = False
-                main_guest.not_answered = False
-                msg = f"Presença de {main_guest.name} confirmada!"
-            else:
-                main_guest.is_confirmed = False
-                main_guest.is_rejected = True
-                main_guest.not_answered = False
-                msg = f"Presença de {main_guest.name} rejeitada!"
-            main_guest.save()
-            updated = True
-        # Extras
-        for extra in extras:
-            if f"confirm_extra_{extra.id}" in request.POST:
-                confirm = request.POST.get(f"confirm_extra_{extra.id}") == "1"
-                if confirm:
-                    extra.is_confirmed = True
-                    extra.is_rejected = False
-                    extra.not_answered = False
-                    msg = f"Presença de {extra.name} confirmada!"
+        form = WhatsAppMessageForm(request.POST, request.FILES)
+        if form.is_valid():
+            message = form.cleaned_data["message"]
+            image = form.cleaned_data.get("image")
+
+            # Only send to selected guests
+            selected_ids = set(int(gid) for gid in selected_guests)
+            guests_to_send = [g for g in all_guests if g.id in selected_ids and getattr(g, "phone_number", None)] if selected_guests else [g for g in all_guests if getattr(g, "phone_number", None)]
+            errors = []
+            sent_guests = []
+            if not guests_to_send:
+                messages.error(request, "Nenhum convidado válido com telefone selecionado para envio.")
+                return redirect(reverse("send_whatsapp_mass"))
+            for guest in guests_to_send:
+                phone = getattr(guest, "phone_number", None)
+                name = getattr(guest, "name", str(guest))
+                try:
+                    success = send_whatsapp_message(phone, message, image)
+                except Exception as exc:
+                    success = False
+                if success:
+                    sent_guests.append(guest)
                 else:
-                    extra.is_confirmed = False
-                    extra.is_rejected = True
-                    extra.not_answered = False
-                    msg = f"Presença de {extra.name} rejeitada!"
-                extra.save()
-                updated = True
-        if updated:
-            success = True
-        # Atualiza os objetos após salvar
-        main_guest.refresh_from_db()
-        extras = main_guest.extra_guests.all()
-    return render(request, "confirmacao_familia.html", {"main_guest": main_guest, "extras": extras, "success": success, "msg": msg})
+                    errors.append(f"{name} ({phone})")
+            if sent_guests:
+                return render(request, "admin/whatsapp_feedback.html", {
+                    "sent_guests": sent_guests
+                })
+            else:
+                messages.error(request, f"Falha ao enviar para: {', '.join(errors)}")
+                return redirect(reverse("send_whatsapp_mass"))
+    else:
+        form = WhatsAppMessageForm(initial={"status": selected_status})
+
+    return render(request, "admin/send_whatsapp.html", {
+        "form": form,
+        "guests": all_guests,
+        "selected_status": selected_status,
+        "selected_guests": [int(gid) for gid in selected_guests],
+    })

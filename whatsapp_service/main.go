@@ -91,6 +91,88 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "sent"})
 	})
 
-	fmt.Println("Servidor WhatsApp OTP rodando em http://localhost:8081")
+	// Novo endpoint: envio de mensagem customizada (texto e imagem)
+	router.POST("/send_message", func(c *gin.Context) {
+		var phone, message string
+		var imageData []byte
+		var hasImage bool
+
+		// Detect content type
+		ct := c.ContentType()
+		if ct == "application/json" {
+			var body struct {
+				Phone   string `json:"phone"`
+				Message string `json:"message"`
+				Image   []byte `json:"image"`
+			}
+			if err := c.BindJSON(&body); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+				return
+			}
+			phone = body.Phone
+			message = body.Message
+			if len(body.Image) > 0 {
+				imageData = body.Image
+				hasImage = true
+			}
+		} else {
+			phone = c.PostForm("phone")
+			message = c.PostForm("message")
+			file, err := c.FormFile("image")
+			if err == nil && file != nil {
+				opened, err := file.Open()
+				if err == nil {
+					defer opened.Close()
+					imageData = make([]byte, file.Size)
+					_, err := opened.Read(imageData)
+					if err == nil {
+						hasImage = true
+					}
+				}
+			}
+		}
+
+		jid := types.NewJID(phone, "s.whatsapp.net")
+
+		if hasImage {
+			uploaded, err := client.Upload(context.Background(), imageData, whatsmeow.MediaImage)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao fazer upload da imagem: " + err.Error()})
+				return
+			}
+			mimetype := http.DetectContentType(imageData)
+			msg := &proto.Message{
+				ImageMessage: &proto.ImageMessage{
+					Caption:       &message,
+					URL:           &uploaded.URL,
+					Mimetype:      &mimetype,
+					FileSHA256:    uploaded.FileSHA256,
+					FileEncSHA256: uploaded.FileEncSHA256,
+					MediaKey:      uploaded.MediaKey,
+					FileLength:    &uploaded.FileLength,
+					DirectPath:    &uploaded.DirectPath,
+				},
+			}
+			_, err = client.SendMessage(context.Background(), jid, msg)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"status": "sent with image"})
+			return
+		}
+
+		// Se não tem imagem, envia só texto
+		_, err := client.SendMessage(context.Background(), jid, &proto.Message{
+			Conversation: &message,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "sent"})
+	})
+
+	fmt.Println("Servidor WhatsApp rodando em http://localhost:8081")
 	router.Run(":8081")
 }
