@@ -28,6 +28,7 @@ tmp/
 # SQLite database (optional — comente se quiser versionar)
 db.sqlite3
 *.sqlite3
+whatsapp_store.db
 
 # Logs
 *.log
