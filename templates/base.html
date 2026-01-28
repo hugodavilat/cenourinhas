@@ -1,106 +1,211 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Aline & Hugo — Casamento{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-      :root { --accent:#c77dff; --muted:#6b7280 }
-      html { box-sizing: border-box; }
-      *, *:before, *:after { box-sizing: inherit; }
-      body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; line-height:1.5; }
-      .display-font { font-family: 'Playfair Display', serif; }
-      .accent { color: var(--accent) }
-      .accent-bg { background: linear-gradient(90deg, rgba(199,125,255,0.12), rgba(199,125,255,0.04)); }
 
-      /* Section inner padding to give breathing room inside accent sections */
-      .section-inner { padding: 1.5rem; }
-      @media (min-width: 768px) { .section-inner { padding: 2.25rem; } }
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Aline & Hugo — Casamento{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --accent: #c77dff;
+      --muted: #6b7280
+    }
 
-      /* Spacing rules for headings and body text inside sections */
-      .section-inner h2.display-font { margin-bottom: 1.5rem; }
-      .section-inner h3 { margin-bottom: 1rem; }
-      @media (min-width: 768px) {
-        .section-inner h2.display-font { margin-bottom: 2rem; }
-        .section-inner h3 { margin-bottom: 1.25rem; }
+    html {
+      box-sizing: border-box;
+    }
+
+    *,
+    *:before,
+    *:after {
+      box-sizing: inherit;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      line-height: 1.5;
+    }
+
+    .display-font {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .accent {
+      color: var(--accent)
+    }
+
+    .accent-bg {
+      background: linear-gradient(90deg, rgba(199, 125, 255, 0.12), rgba(199, 125, 255, 0.04));
+    }
+
+    /* Section inner padding to give breathing room inside accent sections */
+    .section-inner {
+      padding: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .section-inner {
+        padding: 2.25rem;
+      }
+    }
+
+    /* Spacing rules for headings and body text inside sections */
+    .section-inner h2.display-font {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-inner h3 {
+      margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .section-inner h2.display-font {
+        margin-bottom: 2rem;
       }
 
-      /* Slightly larger paragraph text inside feature sections */
-      .accent-bg p { font-size: 1.03rem; }
+      .section-inner h3 {
+        margin-bottom: 1.25rem;
+      }
+    }
 
-      /* Image column tweaks for symmetry */
-      .section-media { display:flex; align-items:center; justify-content:center; }
+    /* Slightly larger paragraph text inside feature sections */
+    .accent-bg p {
+      font-size: 1.03rem;
+    }
 
-      /* Responsive page container to keep content fluid */
-      .page-container { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
+    /* Image column tweaks for symmetry */
+    .section-media {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-      /* Hero spacing and responsive heading */
-      .hero h1 { font-size: clamp(2.25rem, 6vw, 3.25rem); }
+    /* Responsive page container to keep content fluid */
+    .page-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
 
-      /* Utility to crop images while keeping them responsive */
-      .card-img-cover { width:100%; height:220px; object-fit:cover; display:block; }
+    /* Hero spacing and responsive heading */
+    .hero h1 {
+      font-size: clamp(2.25rem, 6vw, 3.25rem);
+    }
 
-      /* Slightly softer card corners and spacing */
-      .card { border-radius: .6rem; }
-    </style>
-    {% block head %}{% endblock %}
-  </head>
-  <body class="bg-light text-dark">
-    <!-- Fork me on GitHub Ribbon (moved to bottom right) -->
+    /* Utility to crop images while keeping them responsive */
+    .card-img-cover {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
 
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-      <div class="container">
-        <a class="navbar-brand display-font" href="/">Aline & Hugo</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="nav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Início</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'presente' %}">Presentes</a></li>
-            {% if request.session.guest_authenticated %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'confirmacao_familia' %}">Confirmação</a></li>
-              {% if request.session.is_admin %}
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Admin
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                    <li><a class="dropdown-item" href="{% url 'wedding_admin' %}">Dashboard</a></li>
-                    <li><a class="dropdown-item" href="{% url 'admin_add_presente' %}">Adicionar Presente</a></li>
-                    <li><a class="dropdown-item" href="{% url 'admin_add_guest' %}">Adicionar Convidado</a></li>
-                    <li><a class="dropdown-item" href="{% url 'send_whatsapp_mass' %}">Enviar WhatsApp em Massa</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger mt-3" href="{% url 'logout' %}">Sair do Admin</a></li>
-                  </ul>
-                </li>
-              {% endif %}
-              <li class="nav-item ms-3"><a class="nav-link text-danger fw-semibold" href="{% url 'logout' %}">Sair</a></li>
-            {% endif %}
-          </ul>
-        </div>
+    /* Slightly softer card corners and spacing */
+    .card {
+      border-radius: .6rem;
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+
+<body class="bg-light text-dark">
+  <!-- Fork me on GitHub Ribbon (moved to bottom right) -->
+
+  <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand display-font" href="/">Aline & Hugo</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav"
+        aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Início</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'presente' %}">Presentes</a></li>
+          {% if request.session.guest_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'confirmacao_familia' %}">Confirmação</a></li>
+          {% if request.session.is_admin %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              Admin
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+              <li><a class="dropdown-item" href="{% url 'wedding_admin' %}">Dashboard</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_add_presente' %}">Adicionar Presente</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_add_guest' %}">Adicionar Convidado</a></li>
+              <li><a class="dropdown-item" href="{% url 'send_whatsapp_mass' %}">Enviar WhatsApp em Massa</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item text-danger mt-3" href="{% url 'logout' %}">Sair do Admin</a></li>
+            </ul>
+          </li>
+          {% endif %}
+          <li class="nav-item ms-3"><a class="nav-link text-danger fw-semibold" href="{% url 'logout' %}">Sair</a></li>
+          {% endif %}
+        </ul>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <main class="py-5">
-      <div class="container-fluid">
-        <div class="page-container">{% block content %}{% endblock %}</div>
-      </div>
-    </main>
+  <main class="py-5">
+    <div class="container-fluid">
+      <div class="page-container">{% block content %}{% endblock %}</div>
+    </div>
+  </main>
 
 
-    <footer class="py-4 mt-5 bg-white border-top">
-      <div class="container text-center text-muted small">&copy; <span class="fw-semibold">Aline & Hugo</span> — Feito com ❤️</div>
-    </footer>
+  <footer class="py-4 mt-5 bg-white border-top">
+    <div class="container text-center text-muted small">&copy; <span class="fw-semibold">Aline & Hugo</span> — Feito com
+      ❤️</div>
+  </footer>
 
-    <!-- Fork me on GitHub Ribbon (bottom right) -->
-    <a href="https://github.com/hugodavilat/cenourinhas" target="_blank" style="position: fixed; bottom: 0; right: 0; z-index: 1031;">
-      <img width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png?resize=149%2C149" alt="Fork me on GitHub" loading="lazy">
-    </a>
+  <a href="https://github.com/hugodavilat/cenourinhas" target="_blank" class="github-corner"
+    aria-label="View source on GitHub">
+    <svg width="80" height="80" viewBox="0 0 250 250"
+      style="fill:#151513; color:#fff; position: fixed; bottom: 0; border: 0; right: 0; z-index: 1050;"
+      aria-hidden="true">
+      <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+      <path
+        d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.5 120.5,78.5 C111.9,74.7 118.4,71.5 118.4,71.5 C124.9,72.7 121.2,78.3 121.2,78.3 C117.3,85.6 108.3,85.1 101.5,86.0"
+        fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+      <path
+        d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.3 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.1 200.1,77.4 C213.9,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,97.5 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+        fill="currentColor" class="octo-body"></path>
+    </svg>
+  </a>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    {% block scripts %}{% endblock %}
-  </body>
-  </html>
+  <style>
+    .github-corner:hover .octo-arm {
+      animation: octocat-wave 560ms ease-in-out;
+    }
+
+    @keyframes octocat-wave {
+
+      0%,
+      100% {
+        transform: rotate(0);
+      }
+
+      20%,
+      60% {
+        transform: rotate(-25deg);
+      }
+
+      40%,
+      80% {
+        transform: rotate(10deg);
+      }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>
