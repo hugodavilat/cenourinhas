@@ -105,7 +105,14 @@ func main() {
 		}
 
 		jid := types.NewJID(body.Phone, "s.whatsapp.net")
-		msgText := fmt.Sprintf("Seu código de acesso ao Cenourinhas é %s. Ele expira em 5 minutos.", body.Code)
+		msgText := fmt.Sprintf(`Aline e Hugo ficam muito felizes com seu interesse.
+		
+		Seu código de acesso ao Cenourinhas é %s. Ele expira em 5 minutos.
+		
+		Curta bastante nosso site. Ele foi feito com muito carinho!
+
+		Se vc for um programador, nos ajude a melhorar ele contribuindo no GitHub: https://github.com/hugodavilat/cenourinhas
+		`, body.Code)
 
 		_, err := client.SendMessage(context.Background(), jid, &proto.Message{
 			Conversation: &msgText,

@@ -23,13 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4+!(t%=$gl31r5rmnu8&g(t0ebv_w46f@lnvasu$asue+v!f2r'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'unsafe-default-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Enable debug for local development so Django serves static files from
 # the `static/` directory. Set this to False in production.
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "cenourinhas.com.br", "www.cenourinhas.com.br"]
 
