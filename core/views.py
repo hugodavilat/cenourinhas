@@ -427,7 +427,7 @@ def send_whatsapp_mass(request):
     if request.method == "POST":
         form = WhatsAppMessageForm(request.POST, request.FILES)
         if form.is_valid():
-            message = form.cleaned_data["message"]
+            message_template = form.cleaned_data["message"]
             image = form.cleaned_data.get("image")
 
             # Only send to selected guests
@@ -441,6 +441,8 @@ def send_whatsapp_mass(request):
             for guest in guests_to_send:
                 phone = getattr(guest, "phone_number", None)
                 name = getattr(guest, "name", str(guest))
+                # Replace {{name}} in message template
+                message = message_template.replace("{{name}}", name)
                 try:
                     success = send_whatsapp_message(phone, message, image)
                 except Exception as exc:
