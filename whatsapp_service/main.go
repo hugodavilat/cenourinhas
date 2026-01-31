@@ -18,6 +18,15 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+// getAlternativePhone returns the alternative phone format for Brazilian numbers
+func getAlternativePhone(originalPhone string) string {
+	// Remove the 9 after the area code for Brazilian numbers if present
+	if len(originalPhone) >= 13 && originalPhone[:3] == "+55" && originalPhone[5] == '9' {
+		return originalPhone[:5] + originalPhone[6:]
+	}
+	return originalPhone
+}
+
 var client *whatsmeow.Client
 
 // Helper to ensure we are connected before any operation
@@ -104,21 +113,38 @@ func main() {
 			return
 		}
 
-		jid := types.NewJID(body.Phone, "s.whatsapp.net")
-		msgText := fmt.Sprintf(`Aline e Hugo ficam muito felizes com seu interesse.
-		
-		Seu código de acesso ao Cenourinhas é %s. Ele expira em 5 minutos.
-		
-		Curta bastante nosso site. Ele foi feito com muito carinho!
+		// Try sending to both with and without the leading 9 after area code for Brazilian numbers
+		originalPhone := body.Phone
+		alternativePhone := originalPhone
+		// Only attempt for Brazilian numbers (country code 55) and if number has 13 digits (country+area+9+8)
+		if len(originalPhone) == 13 && originalPhone[:3] == "+55" && originalPhone[5] == '9' {
+			// Remove the 9 after the area code
+			alternativePhone = originalPhone[:5] + originalPhone[6:]
+		}
 
-		Se vc for um programador, nos ajude a melhorar ele contribuindo no GitHub: https://github.com/hugodavilat/cenourinhas
+		msgText := fmt.Sprintf(`Seu código de acesso ao Cenourinhas é %s. Ele expira em 5 minutos.
+
+Aline e Hugo ficam muito felizes com seu interesse. Curta bastante nosso site. Ele foi feito com muito carinho!
 		`, body.Code)
 
+		// Try original number first
+		jid := types.NewJID(originalPhone, "s.whatsapp.net")
 		_, err := client.SendMessage(context.Background(), jid, &proto.Message{
 			Conversation: &msgText,
 		})
-
-		if err != nil {
+		if err != nil && alternativePhone != originalPhone {
+			// Try alternative number if original failed
+			jidAlt := types.NewJID(alternativePhone, "s.whatsapp.net")
+			_, errAlt := client.SendMessage(context.Background(), jidAlt, &proto.Message{
+				Conversation: &msgText,
+			})
+			if errAlt != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed for both formats: " + err.Error() + ", " + errAlt.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"status": "sent (alternative format)"})
+			return
+		} else if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -165,15 +191,18 @@ func main() {
 			}
 		}
 
-		jid := types.NewJID(phone, "s.whatsapp.net")
+		// Try sending to both with and without the leading 9 after area code for Brazilian numbers
+		originalPhone := phone
+		alternativePhone := originalPhone
+		if len(originalPhone) == 13 && originalPhone[:3] == "+55" && originalPhone[5] == '9' {
+			alternativePhone = originalPhone[:5] + originalPhone[6:]
+		}
 
-		if hasImage {
+		sendWithImage := func(jid types.JID) error {
 			uploaded, err := client.Upload(context.Background(), imageData, whatsmeow.MediaImage)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Upload failed: " + err.Error()})
-				return
+				return fmt.Errorf("Upload failed: %w", err)
 			}
-
 			mimetype := http.DetectContentType(imageData)
 			msg := &proto.Message{
 				ImageMessage: &proto.ImageMessage{
@@ -188,19 +217,51 @@ func main() {
 				},
 			}
 			_, err = client.SendMessage(context.Background(), jid, msg)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(http.StatusOK, gin.H{"status": "sent with image"})
-		} else {
+			return err
+		}
+
+		sendWithText := func(jid types.JID) error {
 			_, err := client.SendMessage(context.Background(), jid, &proto.Message{
 				Conversation: &message,
 			})
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return err
+		}
+
+		// Try original number first
+		jid := types.NewJID(originalPhone, "s.whatsapp.net")
+		var err error
+		if hasImage {
+			err = sendWithImage(jid)
+		} else {
+			err = sendWithText(jid)
+		}
+		if err != nil && alternativePhone != originalPhone {
+			// Try alternative number if original failed
+			jidAlt := types.NewJID(alternativePhone, "s.whatsapp.net")
+			if hasImage {
+				errAlt := sendWithImage(jidAlt)
+				if errAlt != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed for both formats: " + err.Error() + ", " + errAlt.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"status": "sent with image (alternative format)"})
+				return
+			} else {
+				errAlt := sendWithText(jidAlt)
+				if errAlt != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed for both formats: " + err.Error() + ", " + errAlt.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"status": "sent (alternative format)"})
 				return
 			}
+		} else if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if hasImage {
+			c.JSON(http.StatusOK, gin.H{"status": "sent with image"})
+		} else {
 			c.JSON(http.StatusOK, gin.H{"status": "sent"})
 		}
 	})
