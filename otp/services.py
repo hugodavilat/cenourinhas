@@ -22,14 +22,15 @@ def send_whatsapp_otp(phone, code):
         logger.exception("Failed sending OTP to WhatsApp service: %s", exc)
         return False
 
-def send_whatsapp_message(jid, message, image=None):
+def send_whatsapp_message(phone, message, image=None):
     url = settings.WHATSAPP_SERVER_URL  # set in settings
+    phone = phone.lstrip("+")  # remove leading +
     if image:
         # Send as multipart/form-data (not supported for JID endpoint yet)
         files = {"image": image}
-        data = {"jid": jid, "message": message}
+        data = {"phone": phone, "message": message}
         try:
-            r = requests.post(url + "/send_jid_message", data=data, files=files, timeout=15)
+            r = requests.post(url + "/send_message", data=data, files=files, timeout=15)
             r.raise_for_status()
             return True
         except requests.exceptions.RequestException as exc:
@@ -37,9 +38,9 @@ def send_whatsapp_message(jid, message, image=None):
             return False
     else:
         # Send as JSON
-        payload = {"jid": jid, "message": message}
+        payload = {"phone": phone, "message": message}
         try:
-            r = requests.post(url + "/send_jid_message", json=payload, timeout=15)
+            r = requests.post(url + "/send_message", json=payload, timeout=15)
             r.raise_for_status()
             return True
         except requests.exceptions.RequestException as exc:
