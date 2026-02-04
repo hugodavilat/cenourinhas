@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -44,6 +47,26 @@ func ensureConnected(c *gin.Context) bool {
 		}
 	}
 	return true
+}
+
+// URL do seu servidor Django que processará a lógica da IA
+const DjangoWebhookURL = "http://localhost:8000/api/whatsapp/gemini"
+
+// notifyDjango envia a mensagem recebida para o seu backend em Python, usando JID como identificador
+func notifyDjango(jid string, message string) {
+	log.Printf("[Django Link] Notificando Django sobre mensagem de %s: %s\n", jid, message)
+	data := map[string]string{
+		"jid":     jid,
+		"message": message,
+	}
+	jsonData, _ := json.Marshal(data)
+
+	resp, err := http.Post(DjangoWebhookURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("[Django Link] Erro ao contactar Django: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
 }
 
 func main() {
@@ -96,7 +119,67 @@ func main() {
 		}
 	}
 
+	// Setup Django webhook handling server
+	// HANDLER DE EVENTOS: Adicionado o gatilho para o Django
+	client.AddEventHandler(func(evt interface{}) {
+		switch v := evt.(type) {
+		case *events.Message:
+			// Ignorar mensagens enviadas por nós mesmos ou de grupos
+			if v.Info.IsFromMe || v.Info.IsGroup {
+				return
+			}
+			// Extrai texto da mensagem
+			msgText := ""
+			if v.Message.GetConversation() != "" {
+				msgText = v.Message.GetConversation()
+			} else if v.Message.ExtendedTextMessage != nil {
+				msgText = *v.Message.ExtendedTextMessage.Text
+			}
+
+			if msgText != "" {
+				senderJID := v.Info.Sender.ToNonAD().String()
+				fmt.Printf("Mensagem recebida de %s: %s. Notificando Django...\n", senderJID, msgText)
+				go notifyDjango(senderJID, msgText)
+			}
+
+		case *events.Disconnected:
+			fmt.Println("Disconnected! Attempting auto-reconnect...")
+		}
+	})
+
 	router := gin.Default()
+
+	// --- ENDPOINT: SEND MESSAGE TO JID ---
+	router.POST("/send_jid_message", func(c *gin.Context) {
+		if !ensureConnected(c) {
+			return
+		}
+
+		var body struct {
+			JID     string `json:"jid"`
+			Message string `json:"message"`
+		}
+		if err := c.BindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+			return
+		}
+
+		jid, err := types.ParseJID(body.JID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JID"})
+			return
+		}
+
+		_, err = client.SendMessage(context.Background(), jid, &proto.Message{
+			Conversation: &body.Message,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"status": "sent"})
+	})
 
 	// --- ENDPOINT: SEND OTP ---
 	router.POST("/send_otp", func(c *gin.Context) {
@@ -124,7 +207,7 @@ func main() {
 
 		msgText := fmt.Sprintf(`Seu código de acesso ao Cenourinhas é %s. Ele expira em 5 minutos.
 
-Aline e Hugo ficam muito felizes com seu interesse. Curta bastante nosso site. Ele foi feito com muito carinho!
+Eu sou a IA do casamento e estou aqui para ajudar no que for preciso! Qualquer dúvida só chamar aqui.
 		`, body.Code)
 
 		// Try original number first

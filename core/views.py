@@ -1,19 +1,103 @@
 import mercadopago
 import requests
+import json
+
+from google import genai
+from otp.services import send_whatsapp_message
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib import messages
 from django.urls import reverse
-from otp.services import send_whatsapp_message
 
 from .forms import WhatsAppMessageForm, PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm
-from .models import Presente, Pagamento, Guest, ExtraGuest
+from .models import Presente, Pagamento, Guest, ExtraGuest, ConversationMessage
 from .decorators import guest_required, wedding_admin_required
+from .context import ASSISTANT_CONTEXT
 
+
+
+# Simple conversation context storage (in-memory, replace with DB for production)
+conversation_context = {}
+
+@csrf_exempt
+@require_POST
+def whatsapp_gemini_api(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        jid = data.get('jid')
+        message = data.get('message')
+        if not jid or not message:
+            return JsonResponse({'error': 'Missing jid or message'}, status=400)
+
+        # Recupera ou cria contexto
+        context = ConversationMessage.objects.filter(jid=jid).first()
+        if not context:
+            context = ConversationMessage.objects.create(jid=jid, messages=[])
+        messages_list = context.messages or []
+
+        # Mantém só as últimas 20 mensagens
+        if len(messages_list) > 20:
+            messages_list = messages_list[-20:]
+
+        # Adiciona mensagem do usuário
+        messages_list.append(ASSISTANT_CONTEXT.format(
+            conversation_context="\n".join(messages_list),
+            user_message=message
+        ))
+
+        # Chama Gemini
+        try:
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=messages_list,
+                config=genai.types.GenerateContentConfig(
+                    temperature=0.4,
+                    top_p=0.95,
+                    top_k=20,
+                ),
+            )
+            ai_message = response.candidates[0].content.parts[0].text
+        except Exception as e:
+            print(f"Erro ao chamar Gemini API: {str(e)}")
+            return JsonResponse({'error': 'Failed to connect to Gemini API'}, status=500)
+
+        # Adiciona mensagem do usuário e da IA ao contexto
+        messages_list.append(message)
+        messages_list.append(ai_message)
+        # Mantém só as últimas 20 mensagens
+        if len(messages_list) > 20:
+            messages_list = messages_list[-20:]
+        context.messages = messages_list
+        context.save()
+
+        # Envia resposta via WhatsApp
+        try:
+            print("Sending WhatsApp message to", jid)
+            print("Message content:", ai_message)
+            send_whatsapp_message_to_jid(jid, ai_message)
+        except Exception as exc:
+            print(f"Failed to send WhatsApp message to {jid}: {exc}")
+
+        return JsonResponse({'reply': ai_message})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+# New helper to send message to JID
+def send_whatsapp_message_to_jid(jid, message):
+    url = settings.WHATSAPP_SERVER_URL
+    payload = {"jid": jid, "message": message}
+    try:
+        r = requests.post(url + "/send_jid_message", json=payload, timeout=15)
+        r.raise_for_status()
+        return True
+    except requests.exceptions.RequestException as exc:
+        print(f"Failed sending message to JID {jid}: {exc}")
+        return False
 
 def get_sdk():
     """Obter SDK do Mercado Pago com token carregado"""

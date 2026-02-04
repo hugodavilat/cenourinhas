@@ -30,6 +30,9 @@ urlpatterns = [
     path('confirmacao/', views.confirmacao_familia, name='confirmacao_familia'),
     path('admin/', admin.site.urls),
 
+    # API endpoint for WhatsApp Gemini
+    path('api/whatsapp/gemini', views.whatsapp_gemini_api, name='whatsapp_gemini_api'),
+
     # Custom admin dashboard and CRUD
     path('wedding-admin/', views.wedding_admin_dashboard, name='wedding_admin'),
     path('wedding-admin/presente/add/', views.admin_add_presente, name='admin_add_presente'),

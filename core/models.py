@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.db.models import JSONField
 
 class Presente(models.Model):
     nome = models.CharField(max_length=255)
@@ -44,7 +44,8 @@ class Pagamento(models.Model):
 
 class Guest(models.Model):
     name = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=20, unique=True)
+    phone_number = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    jid = models.CharField(max_length=64, unique=True, blank=True, null=True, help_text="WhatsApp JID, e.g. 115831006589136@lid or 5511999999999@s.whatsapp.net")
     is_confirmed = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
     not_answered = models.BooleanField(default=True)
@@ -63,9 +64,15 @@ class ExtraGuest(models.Model):
     main_guest = models.ForeignKey(Guest, on_delete=models.CASCADE, related_name='extra_guests')
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
+    jid = models.CharField(max_length=64, unique=True, blank=True, null=True, help_text="WhatsApp JID, e.g. 115831006589136@lid or 5511999999999@s.whatsapp.net")
     is_confirmed = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
     not_answered = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.name} (Extra of {self.main_guest.name})"
+
+
+class ConversationMessage(models.Model):
+    jid = models.CharField(max_length=64, help_text="WhatsApp JID, e.g. 115831006589136@lid or 5511999999999@s.whatsapp.net")
+    messages = JSONField(default=list, blank=True, help_text="List of conversation messages")

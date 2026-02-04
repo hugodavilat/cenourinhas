@@ -141,3 +141,4 @@ SITE_URL = os.getenv("URL_SITE", "http://localhost:8000")
 
 WHATSAPP_SERVER_URL = os.getenv("WHATSAPP_SERVER_URL", "http://localhost:8081") 
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
