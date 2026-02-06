@@ -53,7 +53,7 @@ def whatsapp_gemini_api(request):
         try:
             client = genai.Client(api_key=settings.GEMINI_API_KEY)
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-1.5-flash',
                 contents=messages_list,
                 config=genai.types.GenerateContentConfig(
                     temperature=0.4,
