@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+from assistant.ai import whatsapp_gemini_api
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -31,7 +32,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # API endpoint for WhatsApp Gemini
-    path('api/whatsapp/gemini', views.whatsapp_gemini_api, name='whatsapp_gemini_api'),
+    path('api/whatsapp/gemini', whatsapp_gemini_api, name='whatsapp_gemini_api'),
 
     # Custom admin dashboard and CRUD
     path('wedding-admin/', views.wedding_admin_dashboard, name='wedding_admin'),

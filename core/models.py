@@ -73,6 +73,3 @@ class ExtraGuest(models.Model):
         return f"{self.name} (Extra of {self.main_guest.name})"
 
 
-class ConversationMessage(models.Model):
-    jid = models.CharField(max_length=64, help_text="WhatsApp JID, e.g. 115831006589136@lid or 5511999999999@s.whatsapp.net")
-    messages = JSONField(default=list, blank=True, help_text="List of conversation messages")
