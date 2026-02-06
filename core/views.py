@@ -16,12 +16,46 @@ from django.urls import reverse
 from .forms import WhatsAppMessageForm, PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm
 from .models import Presente, Pagamento, Guest, ExtraGuest, ConversationMessage
 from .decorators import guest_required, wedding_admin_required
-from .context import ASSISTANT_CONTEXT
+from .context import ASSISTANT_CONTEXT_WITH_CONTEXT, ASSISTANT_CONTEXT_WITH_INPUT_AND_CONTEXT
 
+def call_llama(message, previous_context=[]):
+    resp = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {settings.OPEN_ROUTER_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "meta-llama/llama-3.1-8b-instruct",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": ASSISTANT_CONTEXT_WITH_CONTEXT.format(
+                        conversation_context="\n".join(previous_context)
+                    )
+                },
+                {"role": "user", "content": message},
+            ],
+        }
+    )
+    return resp.json()
 
+def call_gemini(message, previous_context=[]):
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=ASSISTANT_CONTEXT_WITH_INPUT_AND_CONTEXT.format(
+            conversation_context="\n".join(previous_context),
+            user_message=message
+        ),
+        config=genai.types.GenerateContentConfig(
+            temperature=0.4,
+            top_p=0.95,
+            top_k=20,
+        ),
+    )
+    return response.candidates[0].content.parts[0].text
 
-# Simple conversation context storage (in-memory, replace with DB for production)
-conversation_context = {}
 
 @csrf_exempt
 @require_POST
@@ -37,41 +71,33 @@ def whatsapp_gemini_api(request):
         context = ConversationMessage.objects.filter(jid=jid).first()
         if not context:
             context = ConversationMessage.objects.create(jid=jid, messages=[])
-        messages_list = context.messages or []
 
-        # Mantém só as últimas 20 mensagens
-        if len(messages_list) > 20:
-            messages_list = messages_list[-20:]
-
-        # Adiciona mensagem do usuário
-        messages_list.append(ASSISTANT_CONTEXT.format(
-            conversation_context="\n".join(messages_list),
-            user_message=message
-        ))
+        # Only store user and model responses in messages_list
+        messages_list = [m for m in (context.messages or []) if isinstance(m, str)]
+        # Always truncate to last 10 messages (5 pairs) to avoid overflow
+        if len(messages_list) > 10:
+            messages_list = messages_list[-10:]
 
         # Chama Gemini
         try:
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            response = client.models.generate_content(
-                model='gemini-1.5-flash',
-                contents=messages_list,
-                config=genai.types.GenerateContentConfig(
-                    temperature=0.4,
-                    top_p=0.95,
-                    top_k=20,
-                ),
-            )
-            ai_message = response.candidates[0].content.parts[0].text
-        except Exception as e:
-            print(f"Erro ao chamar Gemini API: {str(e)}")
-            return JsonResponse({'error': 'Failed to connect to Gemini API'}, status=500)
+            ai_message = call_gemini(message, previous_context=messages_list)
+        except Exception as exc:
+            print(f"Error calling Gemini API: {exc}")
+            ai_message = f"Nossa IA está com alguma instabilidade no momento. Tente novamente mais tarde ou nos ajude a consertar o problema https://github.com/hugodavilat/cenourinhas/blob/main/core/views.py#L64. Error: {exc}"
+        
+        # try:
+        #     llama_response = call_llama(message, previous_context=messages_list)
+        #     # Extract the actual message text from the LLaMA response
+        #     ai_message = llama_response.get('choices', [{}])[0].get('message', {}).get('content', '')
+        #     if not ai_message:
+        #         ai_message = f"ERROR: LLaMA API did not return a valid message: {llama_response}"
+        # except Exception as exc:
+        #     print(f"Error calling LLaMA API: {exc}")
+        #     ai_message = f"ERROR: Error calling LLaMA API: {exc}"
 
         # Adiciona mensagem do usuário e da IA ao contexto
         messages_list.append(message)
         messages_list.append(ai_message)
-        # Mantém só as últimas 20 mensagens
-        if len(messages_list) > 20:
-            messages_list = messages_list[-20:]
         context.messages = messages_list
         context.save()
 
@@ -85,6 +111,7 @@ def whatsapp_gemini_api(request):
 
         return JsonResponse({'reply': ai_message})
     except Exception as e:
+        print("DEBUG: Exception in whatsapp_gemini_api", str(e))
         return JsonResponse({'error': str(e)}, status=500)
 
 # New helper to send message to JID

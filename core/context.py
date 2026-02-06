@@ -36,15 +36,23 @@ Nunca subestimemos o romantismo de um casual encontro do Tinder.
 A necessidade de dormir junto todos os dias surgiu cedo, quando nos isolamos após pegarmos Covid. Dois meses depois do primeiro encontro, já estávamos viajando para o Ceará. Três meses depois já namorávamos oficialmente. Um ano depois, já estávamos morando juntos.
 "Deve ser horrível não ser emocionado ao se relacionar."
 
-**********Contexto anterior da conversa**********
+"""
+
+ASSISTANT_CONTEXT_WITH_CONTEXT = ASSISTANT_CONTEXT + """
+
+********** Contexto anterior da conversa **********
+
 {conversation_context}
 
-**********Fim do contexto anterior da conversa**********
+********** Fim do contexto anterior da conversa **********
 
-**********Início da mensagem do usuário**********
+"""
+
+ASSISTANT_CONTEXT_WITH_INPUT_AND_CONTEXT = ASSISTANT_CONTEXT_WITH_CONTEXT + """
+
+********** Início da mensagem do usuário **********
 
 {user_message}
 
-**********Fim da mensagem do usuário**********
-
+********** Fim da mensagem do usuário **********
 """
