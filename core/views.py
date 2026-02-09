@@ -5,8 +5,9 @@ from otp.services import send_whatsapp_message
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
+from core.mercadopago_sdk import get_sdk
 from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.urls import reverse
 
@@ -25,7 +26,6 @@ def get_sdk():
 
 @guest_required
 def home(request):
-    """Render the wedding homepage for Aline and Hugo."""
     context = {
         'bride': 'Aline',
         'groom': 'Hugo',
