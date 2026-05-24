@@ -39,7 +39,7 @@ fi
 # 1. Update do sistema
 echo -e "\n${YELLOW}[1/10] Atualizando pacotes do sistema...${NC}"
 apt-get update
-apt-get upgrade -y
+# apt-get upgrade -y # Comentado para evitar atualizar pacotes gigantes desnecessários (como google-cloud-cli) em VMs pequenas
 
 # 2. Instalar Python 3 e dependências de build
 echo -e "\n${YELLOW}[2/10] Instalando Python 3 e ferramentas de build...${NC}"
