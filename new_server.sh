@@ -24,7 +24,7 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$PROJECT_DIR/venv"
 GUNICORN_SOCKET="/run/gunicorn.sock"
 DJANGO_SETTINGS="core.settings"
-GO_VERSION="1.23"
+GO_VERSION="1.23.0"
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Setup Servidor Django Produção${NC}"
@@ -34,6 +34,24 @@ echo -e "${GREEN}========================================${NC}"
 if [[ $EUID -ne 0 ]]; then
    echo -e "${RED}Este script deve ser executado como root (sudo)${NC}"
    exit 1
+fi
+
+# Verificar e configurar Swap (evita travamento por Out-of-Memory em VMs pequenas)
+echo -e "\n${YELLOW}Verificando memória Swap...${NC}"
+if [ $(swapon --show | wc -l) -eq 0 ]; then
+    echo "Nenhuma memória Swap ativa detectada. Criando arquivo Swap de 2GB..."
+    if [ ! -f /swapfile ]; then
+        fallocate -l 2G /swapfile
+        chmod 600 /swapfile
+        mkswap /swapfile
+    fi
+    swapon /swapfile
+    if ! grep -q "/swapfile" /etc/fstab; then
+        echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    fi
+    echo -e "${GREEN}✓ Swap de 2GB configurada com sucesso.${NC}"
+else
+    echo -e "${GREEN}✓ Swap já ativa no sistema.${NC}"
 fi
 
 # 1. Update do sistema
