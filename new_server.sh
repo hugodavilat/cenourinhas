@@ -22,7 +22,7 @@ NC='\033[0m' # No Color
 # Configurações
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$PROJECT_DIR/venv"
-GUNICORN_SOCKET="/run/gunicorn.sock"
+GUNICORN_SOCKET="/run/gunicorn/gunicorn.sock"
 DJANGO_SETTINGS="core.settings"
 
 echo -e "${GREEN}========================================${NC}"
@@ -142,6 +142,8 @@ After=network.target
 Type=notify
 User=www-data
 Group=www-data
+RuntimeDirectory=gunicorn
+RuntimeDirectoryMode=0755
 WorkingDirectory=$PROJECT_DIR
 Environment="PATH=$VENV_DIR/bin"
 EnvironmentFile=$PROJECT_DIR/.env

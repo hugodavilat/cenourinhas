@@ -52,22 +52,35 @@ if [ -n "$SSH_KEY" ]; then
     fi
 fi
 
-printf "\n%b[1/3] Compilando whatsapp_service para Linux (amd64)...%b\n" "${YELLOW}" "${NC}"
+printf "\n%b[1/3] Compilando whatsapp_service para Linux usando Docker...%b\n" "${YELLOW}" "${NC}"
+
+# Verificar se Docker está instalado
+if ! command -v docker &> /dev/null; then
+    printf "%b✗ Docker não encontrado. Instale Docker em https://www.docker.com/products/docker-desktop%b\n" "${RED}" "${NC}"
+    exit 1
+fi
+
 cd "$PROJECT_DIR/whatsapp_service"
 
-# Configurar variáveis de ambiente do Go para compilação cruzada (Cross-Compilation)
-env GOOS=linux GOARCH=amd64 go build -o whatsapp_service_linux main.go
+# Compilar dentro de um container Linux com go:1.25-alpine
+# Isso evita problemas de cross-compile com CGO
+# Compilar como binário estático para rodar em qualquer Linux
+docker run --rm \
+    -v "$PROJECT_DIR/whatsapp_service:/build" \
+    -w /build \
+    golang:1.25-alpine \
+    sh -c "apk add --no-cache gcc musl-dev sqlite-dev && go build -ldflags='-extldflags \"-static\"' -o whatsapp_service_linux main.go"
 
 if [ $? -eq 0 ]; then
     printf "%b✓ Compilado com sucesso! (whatsapp_service_linux)%b\n" "${GREEN}" "${NC}"
 else
-    printf "%b✗ Falha na compilação do Go.%b\n" "${RED}" "${NC}"
+    printf "%b✗ Falha na compilação do Go dentro do Docker.%b\n" "${RED}" "${NC}"
     exit 1
 fi
 
 printf "\n%b[2/3] Enviando binário para o servidor (${SERVER_USER}@${SERVER_IP})...%b\n" "${YELLOW}" "${NC}"
-# Enviar via SCP
-scp $SSH_OPTS whatsapp_service_linux "${SERVER_USER}@${SERVER_IP}:~/cenourinhas/whatsapp_service/whatsapp_service"
+# Enviar via SCP para a pasta home (onde o usuário hugo tem permissão total de escrita)
+scp $SSH_OPTS whatsapp_service_linux "${SERVER_USER}@${SERVER_IP}:~/whatsapp_service_temp"
 
 if [ $? -eq 0 ]; then
     printf "%b✓ Upload concluído com sucesso.%b\n" "${GREEN}" "${NC}"
@@ -80,9 +93,9 @@ fi
 # Limpar o arquivo local temporário
 rm -f whatsapp_service_linux
 
-printf "\n%b[3/3] Ajustando permissões e reiniciando o serviço na VM...%b\n" "${YELLOW}" "${NC}"
-# Conectar via SSH para ajustar permissões, transferir a propriedade para www-data e reiniciar o serviço do whatsapp
-ssh $SSH_OPTS -t "${SERVER_USER}@${SERVER_IP}" "sudo chmod 755 ~/cenourinhas/whatsapp_service/whatsapp_service && sudo chown www-data:www-data ~/cenourinhas/whatsapp_service/whatsapp_service && sudo systemctl restart whatsapp-service"
+printf "\n%b[3/3] Movendo arquivo, ajustando permissões e reiniciando o serviço na VM...%b\n" "${YELLOW}" "${NC}"
+# Conectar via SSH para mover o arquivo usando sudo, ajustar permissões, transferir a propriedade para www-data e reiniciar o serviço do whatsapp
+ssh $SSH_OPTS -t "${SERVER_USER}@${SERVER_IP}" "sudo mv ~/whatsapp_service_temp ~/cenourinhas/whatsapp_service/whatsapp_service && sudo chmod 755 ~/cenourinhas/whatsapp_service/whatsapp_service && sudo chown www-data:www-data ~/cenourinhas/whatsapp_service/whatsapp_service && sudo systemctl restart whatsapp-service"
 
 if [ $? -eq 0 ]; then
     printf "%b=================================================%b\n" "${GREEN}" "${NC}"
