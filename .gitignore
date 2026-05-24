@@ -77,3 +77,8 @@ pip-delete-this-directory.txt
 
 # JetBrains tools
 .idea/
+
+# Golang binaries and build files
+whatsapp_service/whatsapp_service
+whatsapp_service/whatsapp_service_linux
+whatsapp_service/whatsapp_service_mac
