@@ -63,18 +63,19 @@ def login_phone(request):
             code = OTP.generate_code()
             if DEBUG:
                 print(f"DEBUG: OTP para {full_phone} é {code}")
+                # Skip WhatsApp in debug mode - auto-verify
+            else:
+                try:
+                    sent = send_whatsapp_otp(full_phone, code)
+                except Exception as exc:
+                    print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
+                    messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
+                    return redirect("login_phone")
 
-            try:
-                sent = send_whatsapp_otp(full_phone, code)
-            except Exception as exc:
-                print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
-                messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
-                return redirect("login_phone")
-
-            if not sent:
-                print(f"Redirect: não foi possível enviar OTP para {full_phone}")
-                messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Verifique o número ou tente novamente mais tarde.")
-                return redirect("login_phone")
+                if not sent:
+                    print(f"Redirect: não foi possível enviar OTP para {full_phone}")
+                    messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Verifique o número ou tente novamente mais tarde.")
+                    return redirect("login_phone")
 
             OTP.objects.create(
                 user=user,
@@ -111,7 +112,11 @@ def verify_otp(request):
 
             is_extra = request.session.get("is_extra_guest_login", False)
             extra_guest_phone = request.session.get("extra_guest_phone")
-            if is_extra and extra_guest_phone:
+            
+            # In DEBUG mode, skip OTP validation
+            if DEBUG:
+                otp_valid = True
+            elif is_extra and extra_guest_phone:
                 # Find the extra guest
                 try:
                     extra = ExtraGuest.objects.get(phone_number=extra_guest_phone, main_guest_id=user_id)
@@ -129,9 +134,7 @@ def verify_otp(request):
                 # Confirm the extra guest
                 extra.is_confirmed = True
                 extra.save()
-                # Optionally, mark main guest as confirmed if you want
-                # user.is_confirmed = True
-                # user.save()
+                otp_valid = True
             else:
                 otp = OTP.objects.filter(user=user, code=code).order_by("-created_at").first()
                 if not otp:
@@ -140,7 +143,10 @@ def verify_otp(request):
                 if otp.is_expired():
                     messages.error(request, "Code expired")
                     return redirect("login_phone")
-                # mark guest as confirmed and store authenticated flag in session
+                otp_valid = True
+            
+            # mark guest as confirmed and store authenticated flag in session
+            if otp_valid:
                 user.is_confirmed = True
                 # reset message_sent since verification succeeded
                 user.message_sent = False

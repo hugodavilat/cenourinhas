@@ -1,168 +1,655 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block title %}Aline & Hugo — Nosso Casamento{% endblock %}
 
+{% block head %}
+<style>
+  /* Local Hero styling */
+  .hero-container {
+    text-align: center;
+    padding: 3rem 0;
+  }
+
+  .photo-frame {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    margin: 0 auto 1.8rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .photo-frame::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(var(--green), var(--blue), var(--red), var(--blue), var(--green));
+    z-index: 0;
+    animation: spin 12s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .photo-frame::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: var(--white);
+    z-index: 1;
+  }
+
+  .photo-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+    background: var(--white-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .photo-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .rings-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+    animation: floatRings 3s ease-in-out infinite;
+  }
+
+  @keyframes floatRings {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-5px); }
+  }
+
+  .wedding-names {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    color: var(--green);
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  .wedding-names em {
+    font-style: italic;
+  }
+
+  .ampersand {
+    color: var(--red);
+    font-style: italic;
+  }
+
+  /* Segment style */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 4rem 0;
+    opacity: 0.5;
+  }
+
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--green-mid), transparent);
+  }
+
+  .section-divider span {
+    color: var(--green-mid);
+    font-size: 0.9rem;
+  }
+
+  /* Event cards */
+  .event-card {
+    background: var(--white-warm);
+    border-radius: 24px;
+    border: 1px solid rgba(38, 66, 42, 0.08);
+    box-shadow: 0 4px 14px var(--shadow);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    height: 100%;
+  }
+
+  .event-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .event-header {
+    background: rgba(38, 66, 42, 0.04);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(38, 66, 42, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .event-body {
+    padding: 2rem;
+  }
+
+  .event-icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--white-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+  }
+
+  .event-icon-circle.alt {
+    background: var(--red);
+  }
+
+  /* RSVP section items */
+  .rsvp-guest-item {
+    background: var(--white-pale);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    border: 1.5px solid rgba(38, 66, 42, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .rsvp-guest-item.confirmed {
+    border-color: rgba(38, 66, 42, 0.3);
+    background: rgba(38, 66, 42, 0.04);
+  }
+
+  .rsvp-guest-item.rejected {
+    border-color: rgba(152, 66, 22, 0.3);
+    background: rgba(152, 66, 22, 0.03);
+  }
+
+  .btn-rsvp-action {
+    border-radius: 30px;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    padding: 0.55rem 1.3rem;
+    transition: all 0.2s;
+  }
+
+  /* Gift registry list styling */
+  .gift-card {
+    background: var(--white-warm);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(38, 66, 42, 0.08);
+    box-shadow: 0 4px 12px var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .gift-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(38, 66, 42, 0.14);
+  }
+
+  .gift-img {
+    height: 240px;
+    object-fit: cover;
+    width: 100%;
+    background-color: var(--white-pale);
+  }
+
+  .gift-info {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .gift-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 0.4rem;
+  }
+
+  .gift-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .gift-price {
+    font-family: 'Jost', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 1rem;
+  }
+
+  .btn-gift {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%);
+    color: var(--white-pale);
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.3rem;
+    width: 100%;
+    transition: all 0.2s;
+    text-align: center;
+    display: block;
+    text-decoration: none;
+  }
+
+  .btn-gift:hover {
+    filter: brightness(1.08);
+    color: var(--white-pale);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(38, 66, 42, 0.25);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section id="sobre" class="text-center py-5">
-  <div class="section-inner">
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <h1 class="display-font mb-2">Aline & Hugo</h1>
-        <p class="lead text-muted mb-4">Quase um carnaval fora de época. </p>
-        <p class="mb-4"><strong class="accent">10 e 11 de outubro de 2026</strong> &middot;
-          <span class="text-muted">Belo Horizonte</span>
-        </p>
-      </div>
+
+<!-- Hero / Welcome Header -->
+<section id="sobre" class="hero-container py-5">
+  <!-- Photo of the Couple with Gradient Border -->
+  <div class="photo-frame">
+    <div class="photo-inner">
+      <img src="{% static 'imgs/jangal.jpg' %}" alt="Aline e Hugo">
     </div>
   </div>
+
+  <!-- Dual Wedding Rings Icon -->
+  <div class="rings-icon">
+    <svg width="64" height="34" viewBox="0 0 64 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="22" cy="17" r="13" stroke="#26422a" stroke-width="2.5"/>
+      <circle cx="22" cy="17" r="9.5" stroke="#78898f" stroke-width="1"/>
+      <circle cx="42" cy="17" r="13" stroke="#26422a" stroke-width="2.5"/>
+      <circle cx="42" cy="17" r="9.5" stroke="#78898f" stroke-width="1"/>
+      <polygon points="22,8 25,12 22,16 19,12" fill="#984216" opacity="0.8"/>
+    </svg>
+  </div>
+
+  <p class="text-uppercase small tracking-wide text-muted fw-semibold mb-2" style="letter-spacing: 0.2em;">Você está convidado</p>
+  <h1 class="wedding-names">
+    <em>Aline</em>
+    <span class="ampersand"> & </span>
+    <em>Hugo</em>
+  </h1>
+  <p class="lead text-muted max-w-2xl mx-auto fs-5 col-md-8 px-3">
+    Quase um carnaval fora de época. Estamos preparando uma comemoração inesquecível e contamos com você!
+  </p>
+  <p class="mb-4 mt-3">
+    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fs-6">
+      <i class="bi bi-calendar-heart me-1"></i> 10 e 11 de Outubro de 2026
+    </span>
+    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill fs-6 ms-2">
+      <i class="bi bi-geo-alt-fill me-1"></i> Belo Horizonte, MG
+    </span>
+  </p>
 </section>
 
-<section id="cenourinhas" class="py-5 accent-bg rounded-3 mb-4">
-  <div class="section-inner">
-    <div class="row align-items-center g-4">
+<div class="section-divider">
+  <span>✦</span>
+</div>
+
+<!-- Por que Cenourinhas? -->
+<section id="cenourinhas" class="py-4">
+  <div class="card-premium">
+    <div class="row align-items-center g-5">
       <div class="col-12 col-md-7">
-        <h2 class="display-font">Por quê "Cenourinhas"?</h2>
-        <div class="text-muted mx-auto" style="max-width:70ch; text-align:justify;">
-          <p>
+        <h2 class="display-font text-success-dark mb-4 fs-1">Por que "Cenourinhas"?</h2>
+        <div class="text-muted fs-5" style="text-align: justify; line-height: 1.7;">
+          <p class="mb-3">
             Muitos perguntam: "Por que vocês se chamam de Cenourinhas?".
-            Tudo começou com o nosso lema oficial em cada treino de corrida: "To Bem Não...".
+            Tudo começou com o nosso lema oficial em cada treino de corrida: <strong>"To Bem Não..."</strong>.
           </p>
-          <p>
-            O meme do "kkkrai cenorinha, to bem não" virou nossa piada diária, e sem que percebêssemos, o apelido pegou.
-            Hoje, se 'Cenourinha' é a nossa forma mais natural e carinhosa de chamar um ao outro.
+          <p class="mb-0">
+            O meme do <em>"kkkrai cenorinha, to bem não"</em> virou nossa piada diária, e sem que percebêssemos, o apelido pegou.
+            Hoje, "Cenourinha" é a nossa forma mais natural, leve e carinhosa de chamar um ao outro.
           </p>
         </div>
       </div>
-      <div class="col-12 col-md-5 section-media">
-        <img src="{% static 'imgs/kkkrai.jpeg' %}" class="img-fluid rounded" alt="Casal" style="max-width:320px;">
+      <div class="col-12 col-md-5 d-flex justify-content-center">
+        <div class="shadow-lg rounded-4 overflow-hidden border p-2 bg-white" style="max-width:320px;">
+          <img src="{% static 'imgs/kkkrai.jpeg' %}" class="img-fluid rounded-3" alt="Meme Cenorinha">
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="sobre-o-casal" class="py-5 bg-light">
-  <div class="container">
-    <div class="row justify-content-center text-center">
-      <div class="col-lg-8">
-        <h2 class="display-5 display-font mb-4">Sobre o Casal</h2>
-        <p class="lead text-muted">
-        <p>
-          Ela é uma paulista raiz, dona de uma tatuagem do Banespa no braço e apaixonada por prédios antigos e corridas
-          no asfalto.
+<div class="section-divider">
+  <span>✦</span>
+</div>
+
+<!-- Sobre o Casal -->
+<section id="sobre-o-casal" class="py-4">
+  <div class="card-premium">
+    <div class="text-center mb-5">
+      <h2 class="display-font fs-1">Sobre o Casal</h2>
+      <p class="text-muted tracking-widest text-uppercase small" style="letter-spacing: 0.1em;">Duas metades que se completam</p>
+    </div>
+    <div class="row g-4 justify-content-center text-muted fs-5" style="line-height: 1.7; text-align: justify;">
+      <div class="col-lg-10">
+        <p class="mb-4">
+          Ela é uma paulista raiz, dona de uma tatuagem do Banespa no braço e apaixonada por prédios antigos e corridas no asfalto.
           Ele é tricolor doente pelo Fluminense, fã de moqueca, do mar e de correr com o pé na areia.
         </p>
-        <p>
+        <p class="mb-4">
           Ela, vegetariana da cidade grande, jurava que o filhote de um cavalo era um bezerro.
-          Ele virou polvotariano desde que assistiu ao filme Professor Polvo. Achou o bicho curioso demais para ser comido.
+          Ele virou polvotariano desde que assistiu ao documentário <em>"Professor Polvo"</em>. Achou o bicho inteligente e curioso demais para ser comido.
         </p>
-        <p>
-          Ela adora observar a lua e suas fases como quem segue capítulos de uma novela.
-          Ele segue olhando para chão pensando no algoritmo que melhor divide uma pizza entre três pessoas para que todas fiquem satisfeitas.
+        <p class="mb-4">
+          Ela adora observar a lua e suas fases como quem segue religiosamente capítulos de uma novela.
+          Ele segue olhando para o chão, pensando no algoritmo de programação ideal que melhor divide uma pizza entre três pessoas para que todas fiquem perfeitamente satisfeitas.
         </p>
-        <p>
-          E aí, num desses acasos que parecem brincadeira do destino, os dois se esbarraram em Belo Horizonte, dentro de
-          uma cervejaria falida da Zona Sul.
-          Foi ali, entre copos vazios e risadas tímidas, que algo começou a fazer sentido demais para ser coincidência.
-
-          Porque, no fim, quando duas pessoas tão diferentes combinam tão bem… não tem muito como discutir: estava
-          escrito.
+        <p class="mb-0">
+          E aí, num desses acasos divertidos que parecem brincadeira do destino, os dois se esbarraram em Belo Horizonte, dentro de uma cervejaria falida na Zona Sul.
+          Foi ali, entre copos vazios e risadas tímidas, que tudo começou a fazer sentido rápido demais.
+          Porque, no fim, quando duas pessoas de mundos tão diferentes combinam com essa sintonia... não há o que discutir: estava escrito nas estrelas.
         </p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- <hr class="my-0 opacity-25"> -->
+<div class="section-divider">
+  <span>✦</span>
+</div>
 
-<section id="nossa-jornada" class="py-5">
-  <div class="container">
+<!-- Nossa Jornada -->
+<section id="nossa-jornada" class="py-4">
+  <div class="card-premium">
     <div class="row align-items-center g-5">
-
-      <div class="col-12 col-md-5 col-lg-4">
-        <div class="card shadow-sm border-0 overflow-hidden">
-          <div style="height: 500px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
-            <img src="{% static 'imgs/jangal.jpg' %}" alt="Foto do casal"
-              style="height: 100%; width: 85%; object-fit: cover;">
-          </div>
+      <div class="col-12 col-md-5 d-flex justify-content-center">
+        <div class="rounded-4 overflow-hidden shadow-lg border p-1 bg-white" style="width: 100%; max-width: 340px; height: 420px;">
+          <img src="{% static 'imgs/jangal.jpg' %}" alt="Foto no Jangal" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
         </div>
       </div>
-
-      <div class="col-12 col-md-7 col-lg-8">
-        <div class="ps-md-4">
-          <h2 class="display-font mb-4">Nossa jornada</h2>
-          <div class="text-muted fs-5" style="text-align: justify; line-height: 1.6;">
-            <p>Jamais subestimemos o romantismo de um encontro casual de Tinder.</p>
-            <p>
-              Para nós, a vontade de dividir o travesseiro surgiu cedo, impulsionada pelo isolamento forçado de uma
-              Covid logo no início.
-              O que começou despretensioso acelerou: em dois meses desbravamos o Ceará; em três opedido de namoro; em
-              pouco mais de um ano, a vida sob o mesmo teto. E, claro, a decisão de oficializar a união.
-            </p>
-            <p class="fst-italic">"Deve ser um tédio não ser 'emocionado' na hora de amar."</p>
-          </div>
-          <!-- <p class="text-muted small mt-3">(Clique na foto para ampliar)</p> -->
+      <div class="col-12 col-md-7">
+        <h2 class="display-font fs-1 mb-4">Nossa Jornada</h2>
+        <div class="text-muted fs-5" style="text-align: justify; line-height: 1.7;">
+          <p class="mb-3">Jamais subestimemos o romantismo de um encontro casual no Tinder.</p>
+          <p class="mb-3">
+            Para nós, a vontade de dividir o travesseiro surgiu logo cedo, impulsionada pelo isolamento forçado de uma Covid no comecinho do namoro.
+            O que começou despretensioso acelerou: em dois meses desbravamos o litoral do Ceará; em três veio o pedido de namoro; em pouco mais de um ano, montamos nosso lar sob o mesmo teto. E agora, a decisão mais feliz de oficializar essa união.
+          </p>
+          <p class="mb-0 text-success-dark fst-italic fw-medium text-center mt-4 fs-4">
+            "Deve ser um tédio não ser 'emocionado' na hora de amar."
+          </p>
         </div>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- <section id="local-e-festa" class="py-5 bg-light">
-  <div class="container">
-    <div class="text-center mb-5">
-      <h2 class="display-font display-5">Onde e Quando</h2>
-    </div>
+<div class="section-divider">
+  <span>✦</span>
+</div>
 
-    <div class="row g-4">
-      <div class="col-12 col-lg-6">
-        <div class="card h-100 shadow-sm border-0">
-          <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-3">
-              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                <i class="bi bi-calendar-heart"></i> </div>
-              <h3 class="display-font ms-3 mb-0">Pré-Casamento</h3>
-            </div>
-            
-            <ul class="list-unstyled mb-4">
-              <li class="mb-2"><strong>Data:</strong> 10 de outubro, às 13h</li>
-              <li class="mb-2"><strong>Local:</strong> Quintal Pra Festas</li>
-              <li class="mb-2"><strong>Traje:</strong> Descontraído</li>
-            </ul>
+<!-- Onde e Quando -->
+<section id="onde" class="py-4">
+  <div class="text-center mb-5">
+    <h2 class="display-font fs-1">Onde & Quando</h2>
+    <p class="text-muted tracking-widest text-uppercase small" style="letter-spacing: 0.1em;">Prepare-se para os dias de festa</p>
+  </div>
 
-            <div class="ratio ratio-16x9 rounded overflow-hidden">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d29995.633595023406!2d-43.98171516920444!3d-19.989443173187475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa697d8e099d1e1%3A0x27fdb1a43b3ec94!2sQuintal%20Pra%20Festa!5e0!3m2!1sen!2sbr!4v1769134199074!5m2!1sen!2sbr" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
+  <div class="row g-4">
+    <!-- Pré-Casamento Card -->
+    <div class="col-12 col-lg-6">
+      <div class="event-card">
+        <div class="event-header">
+          <div class="event-icon-circle alt">
+            <i class="bi bi-calendar-heart"></i>
+          </div>
+          <div>
+            <h3 class="display-font fs-3 mb-0" style="color: var(--red);">Pré-Casamento</h3>
+            <small class="text-muted">Esquenta para os mais íntimos</small>
+          </div>
+        </div>
+        <div class="event-body">
+          <ul class="list-unstyled mb-4 text-muted">
+            <li class="mb-2"><i class="bi bi-clock-fill me-2 text-danger"></i><strong>Data & Hora:</strong> 10 de outubro, às 13h</li>
+            <li class="mb-2"><i class="bi bi-geo-alt-fill me-2 text-danger"></i><strong>Local:</strong> Quintal Pra Festas</li>
+            <li class="mb-2"><i class="bi bi-gem me-2 text-danger"></i><strong>Traje:</strong> Descontraído / Esporte</li>
+          </ul>
+          <div class="ratio ratio-16x9 rounded-4 overflow-hidden border">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d29995.633595023406!2d-43.98171516920444!3d-19.989443173187475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa697d8e099d1e1%3A0x27fdb1a43b3ec94!2sQuintal%20Pra%20Festa!5e0!3m2!1sen!2sbr!4v1769134199074!5m2!1sen!2sbr" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="col-12 col-lg-6">
-        <div class="card h-100 shadow-sm border-0">
-          <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-3">
-              <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                <i class="bi bi-glass-gold"></i>
-              </div>
-              <h3 class="display-font ms-3 mb-0">Casamento</h3>
-            </div>
-
-            <ul class="list-unstyled mb-4">
-              <li class="mb-2"><strong>Data:</strong> 11 de outubro, às 18h</li>
-              <li class="mb-2"><strong>Local:</strong> Templo Cervejeiro</li>
-              <li class="mb-2"><strong>Traje:</strong> Esporte Fino</li>
-            </ul>
-
-            <div class="ratio ratio-16x9 rounded overflow-hidden">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3749.454170616523!2d-43.963690425396514!3d-19.98944438141241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa6bd42c2837ee5%3A0x109de89657a829e3!2sCervejaria%20Backer!5e0!3m2!1sen!2sbr!4v1769134129528!5m2!1sen!2sbr" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
+    <!-- Casamento Card -->
+    <div class="col-12 col-lg-6">
+      <div class="event-card">
+        <div class="event-header">
+          <div class="event-icon-circle">
+            <i class="bi bi-glass-solid"></i>
+          </div>
+          <div>
+            <h3 class="display-font fs-3 mb-0" style="color: var(--green);">A Grande Cerimônia</h3>
+            <small class="text-muted">O momento do "Sim!"</small>
+          </div>
+        </div>
+        <div class="event-body">
+          <ul class="list-unstyled mb-4 text-muted">
+            <li class="mb-2"><i class="bi bi-clock-fill me-2 text-success"></i><strong>Data & Hora:</strong> 11 de outubro, às 18h</li>
+            <li class="mb-2"><i class="bi bi-geo-alt-fill me-2 text-success"></i><strong>Local:</strong> Templo Cervejeiro</li>
+            <li class="mb-2"><i class="bi bi-gem me-2 text-success"></i><strong>Traje:</strong> Esporte Fino</li>
+          </ul>
+          <div class="ratio ratio-16x9 rounded-4 overflow-hidden border">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3749.454170616523!2d-43.963690425396514!3d-19.98944438141241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa6bd42c2837ee5%3A0x109de89657a829e3!2sCervejaria%20Backer!5e0!3m2!1sen!2sbr!4v1769134129528!5m2!1sen!2sbr" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         </div>
       </div>
     </div>
   </div>
-</section> -->
+</section>
+
+<div class="section-divider">
+  <span>✦</span>
+</div>
+
+<!-- RSVP / Confirmação de Presença -->
+<section id="rsvp" class="py-4">
+  <div class="card-premium">
+    <div class="text-center mb-4">
+      <h2 class="display-font fs-1">Confirmação de Presença</h2>
+      <p class="text-muted tracking-widest text-uppercase small" style="letter-spacing: 0.1em;">Confirme sua presença no nosso evento</p>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if success %}
+    <div class="alert alert-success d-flex align-items-center rounded-3 p-3 mb-4 border-0 shadow-sm" role="alert" style="background-color: rgba(38, 66, 42, 0.1); color: var(--green);">
+      <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+      <div><strong>Tudo certo!</strong> {{ msg }}</div>
+    </div>
+    {% endif %}
+
+    <form method="post" action="" class="mt-4">
+      {% csrf_token %}
+      
+      <p class="text-muted text-center mb-4">Selecione e confirme a presença para cada membro da sua família:</p>
+
+      <div class="col-lg-10 mx-auto">
+        <!-- Main Guest Item -->
+        <div class="rsvp-guest-item {% if main_guest.is_confirmed %}confirmed{% elif main_guest.is_rejected %}rejected{% endif %}">
+          <div class="d-flex align-items-center gap-3">
+            <span class="fs-5 fw-medium {% if main_guest.is_confirmed %}text-success{% elif main_guest.is_rejected %}text-danger{% endif %}">
+              {{ main_guest.name }}
+              {% if main_guest.phone_number %}
+              <small class="text-muted d-block" style="font-size:0.85rem;"><i class="bi bi-telephone"></i> {{ main_guest.phone_number }}</small>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="d-flex gap-2 align-items-center">
+            <!-- Status Badges -->
+            {% if main_guest.is_confirmed %}
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill me-2">
+                <i class="bi bi-check-lg"></i> Confirmado
+              </span>
+            {% elif main_guest.is_rejected %}
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill me-2">
+                <i class="bi bi-x-lg"></i> Recusado
+              </span>
+            {% else %}
+              <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill me-2">
+                <i class="bi bi-question-circle"></i> Pendente
+              </span>
+            {% endif %}
+
+            <!-- Buttons -->
+            <button name="confirm_{{ main_guest.id }}" value="1" class="btn {% if main_guest.is_confirmed %}btn-success{% else %}btn-outline-success{% endif %} btn-rsvp-action btn-sm" type="submit" title="Confirmar Presença">
+              Confirmar
+            </button>
+            <button name="confirm_{{ main_guest.id }}" value="0" class="btn {% if main_guest.is_rejected %}btn-danger{% else %}btn-outline-danger{% endif %} btn-rsvp-action btn-sm" type="submit" title="Rejeitar Presença">
+              Recusar
+            </button>
+          </div>
+        </div>
+
+        <!-- Extra Guests (Family members) -->
+        {% for extra in extras %}
+        <div class="rsvp-guest-item {% if extra.is_confirmed %}confirmed{% elif extra.is_rejected %}rejected{% endif %}">
+          <div class="d-flex align-items-center gap-3">
+            <span class="fs-5 fw-medium {% if extra.is_confirmed %}text-success{% elif extra.is_rejected %}text-danger{% endif %}">
+              <span class="text-muted fs-6 me-1">↳</span> {{ extra.name }}
+              {% if extra.phone_number %}
+              <small class="text-muted d-block ms-4" style="font-size:0.85rem;"><i class="bi bi-telephone"></i> {{ extra.phone_number }}</small>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="d-flex gap-2 align-items-center">
+            <!-- Status Badges -->
+            {% if extra.is_confirmed %}
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill me-2">
+                <i class="bi bi-check-lg"></i> Confirmado
+              </span>
+            {% elif extra.is_rejected %}
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill me-2">
+                <i class="bi bi-x-lg"></i> Recusado
+              </span>
+            {% else %}
+              <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill me-2">
+                <i class="bi bi-question-circle"></i> Pendente
+              </span>
+            {% endif %}
+
+            <!-- Buttons -->
+            <button name="confirm_extra_{{ extra.id }}" value="1" class="btn {% if extra.is_confirmed %}btn-success{% else %}btn-outline-success{% endif %} btn-rsvp-action btn-sm" type="submit" title="Confirmar Presença">
+              Confirmar
+            </button>
+            <button name="confirm_extra_{{ extra.id }}" value="0" class="btn {% if extra.is_rejected %}btn-danger{% else %}btn-outline-danger{% endif %} btn-rsvp-action btn-sm" type="submit" title="Rejeitar Presença">
+              Recusar
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+</section>
+
+<div class="section-divider">
+  <span>✦</span>
+</div>
+
+<!-- Lista de Presentes -->
+<section id="presentes" class="py-4">
+  <div class="text-center mb-5">
+    <h2 class="display-font fs-1">Lista de Presentes</h2>
+    <p class="text-muted tracking-widest text-uppercase small" style="letter-spacing: 0.1em;">Dê um presente especial para os noivos</p>
+  </div>
+
+  <div class="row g-4">
+    {% for presente in presentes %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="gift-card">
+        <!-- Gift Image -->
+        {% if presente.imagem_url %}
+          <img src="{{ presente.imagem_url }}" alt="{{ presente.nome }}" class="gift-img">
+        {% else %}
+          <div class="gift-img d-flex align-items-center justify-content-center" style="background-color: var(--white-pale);">
+            <i class="bi bi-gift text-muted fs-1 opacity-25"></i>
+          </div>
+        {% endif %}
+
+        <!-- Gift Information -->
+        <div class="gift-info">
+          <div>
+            <h3 class="gift-title">{{ presente.nome }}</h3>
+            <p class="gift-desc">
+              {% if presente.descricao %}
+                {{ presente.descricao }}
+              {% else %}
+                Contribua para este momento inesquecível de Aline e Hugo.
+              {% endif %}
+            </p>
+          </div>
+          <div>
+            <div class="gift-price">R$ {{ presente.valor|floatformat:2 }}</div>
+            <a href="{% url 'iniciar_pagamento' presente.id %}" class="btn-gift">
+              <i class="bi bi-gift-fill me-1"></i> Presentear
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-gift-fill display-1 text-muted opacity-25"></i>
+        <h3 class="mt-3 display-font">Presentes em Breve</h3>
+        <p>Estamos selecionando nossos presentes. Volte em breve!</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% if msg %}
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('rsvp');
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  });
+</script>
+{% endif %}
 
 {% endblock %}

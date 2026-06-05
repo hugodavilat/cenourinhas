@@ -1,66 +1,416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <title>Casamento Aline & Hugo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
     <style>
-        body { background-color: #f8f9fa; height: 100vh; display: flex; align-items: center; }
-        .login-card { border: none; border-radius: 1rem; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); }
-        .btn-whatsapp { background-color: #25D366; color: white; border: none; }
-        .btn-whatsapp:hover { background-color: #128C7E; color: white; }
+        :root {
+            --green:       #26422a;
+            --green-mid:   #3a6040;
+            --green-light: #4e7a55;
+            --red:         #984216;
+            --red-light:   #b85a30;
+            --white:       #e4d6c5;
+            --white-warm:  #ede1d2;
+            --white-pale:  #f5ede0;
+            --blue:        #78898f;
+            --blue-light:  #96aab0;
+            --blue-pale:   #d0dadd;
+            --text-main:   #1a2e1d;
+            --text-muted:  #5a7060;
+            --shadow:      rgba(38, 66, 42, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background-color: var(--white);
+            font-family: 'Jost', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse at 15% 15%, rgba(38,66,42,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 85%, rgba(152,66,22,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 0%,  rgba(120,137,143,0.06) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .corner-decor {
+            position: fixed;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        .corner-decor.tl { top: -20px; left: -20px; }
+        .corner-decor.br { bottom: -20px; right: -20px; transform: rotate(180deg); }
+
+        .card-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            padding: 1rem;
+            animation: fadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Photo frame */
+        .photo-frame {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-frame::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: conic-gradient(var(--green), var(--blue), var(--red), var(--blue), var(--green));
+            z-index: 0;
+            animation: spin 12s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .photo-frame::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
+            background: var(--white);
+            z-index: 1;
+        }
+
+        .photo-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+            background: var(--white-pale);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--green);
+        }
+
+        .photo-placeholder svg {
+            width: 54px;
+            height: 54px;
+            opacity: 0.65;
+        }
+
+        /* Card */
+        .card {
+            background: var(--white-warm);
+            border-radius: 24px;
+            padding: 2.5rem 2.5rem 2rem;
+            box-shadow:
+                0 2px 6px var(--shadow),
+                0 14px 44px rgba(38,66,42,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+            border: 1px solid rgba(38,66,42,0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--green), var(--red), var(--blue), var(--green), transparent);
+        }
+
+        /* Rings icon */
+        .rings-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            animation: floatRings 3s ease-in-out infinite;
+        }
+
+        @keyframes floatRings {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-5px); }
+        }
+
+        .wedding-date {
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--green-mid);
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+
+        .wedding-names {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 400;
+            font-size: 2.4rem;
+            color: var(--green);
+            text-align: center;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
+        }
+
+        .wedding-names em { font-style: italic; color: var(--green); }
+        .ampersand { color: var(--red); font-style: italic; }
+
+        .tagline {
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 2rem;
+            letter-spacing: 0.04em;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.8rem;
+        }
+        .divider::before { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--blue-pale)); }
+        .divider::after  { content: ''; flex: 1; height: 1px; background: linear-gradient(to left,  transparent, var(--blue-pale)); }
+        .divider-icon { color: var(--green-mid); font-size: 0.7rem; }
+
+        /* Form */
+        .form-group { margin-bottom: 1.2rem; }
+
+        .form-label {
+            display: block;
+            font-family: 'Jost', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--green-mid);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid rgba(38,66,42,0.2);
+            border-radius: 10px;
+            background: var(--white-pale);
+            font-family: 'Jost', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            outline: none;
+            appearance: none;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: var(--green);
+            background: var(--white-warm);
+            box-shadow: 0 0 0 3px rgba(38,66,42,0.10);
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2326422a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        .invalid-feedback {
+            color: var(--red);
+            font-size: 0.78rem;
+            margin-top: 0.3rem;
+            font-family: 'Jost', sans-serif;
+        }
+
+        .alert-danger {
+            background: rgba(152,66,22,0.06);
+            border: 1px solid rgba(152,66,22,0.25);
+            color: var(--red);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+            font-family: 'Jost', sans-serif;
+        }
+
+        /* Submit button */
+        .btn-submit {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%);
+            color: var(--white-pale);
+            border: none;
+            border-radius: 12px;
+            font-family: 'Jost', sans-serif;
+            font-weight: 500;
+            font-size: 0.88rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+            box-shadow: 0 4px 18px rgba(38,66,42,0.30);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(38,66,42,0.40);
+            filter: brightness(1.08);
+        }
+
+        .btn-submit:active { transform: translateY(0); }
+        .btn-submit svg { width: 18px; height: 18px; }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+        }
+
+        @media (max-width: 480px) {
+            .card { padding: 2rem 1.5rem 1.5rem; }
+            .wedding-names { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card login-card p-4">
-                <div class="text-center mb-4">
-                    <div class="display-6 text-success mb-2"><i class="bi bi-whatsapp"></i></div>
-                    <h2 class="fw-bold">Bem-vindo de Volta</h2>
-                    <p class="text-muted">Digite seu número de telefone para receber um código de login seguro.</p>
-                </div>
+<!-- Corner decorative florals -->
+<svg class="corner-decor tl" width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10,10 Q60,10 80,40 Q100,70 60,80 Q20,90 10,50 Q0,20 10,10Z" fill="#26422a"/>
+    <path d="M30,5 Q50,30 40,60 Q30,80 10,70 Q-5,55 15,35Z" fill="#984216"/>
+    <circle cx="85" cy="45" r="5" fill="#26422a"/>
+    <circle cx="55" cy="85" r="3" fill="#78898f"/>
+    <path d="M5,80 Q25,75 35,95 Q45,115 25,118 Q5,120 5,100Z" fill="#78898f" opacity="0.6"/>
+</svg>
 
-                <form method="POST" novalidate>
-                    {% csrf_token %}
-                    
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+<svg class="corner-decor br" width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10,10 Q60,10 80,40 Q100,70 60,80 Q20,90 10,50 Q0,20 10,10Z" fill="#26422a"/>
+    <path d="M30,5 Q50,30 40,60 Q30,80 10,70 Q-5,55 15,35Z" fill="#984216"/>
+    <circle cx="85" cy="45" r="5" fill="#26422a"/>
+    <circle cx="55" cy="85" r="3" fill="#78898f"/>
+    <path d="M5,80 Q25,75 35,95 Q45,115 25,118 Q5,120 5,100Z" fill="#78898f" opacity="0.6"/>
+</svg>
 
-                    <!-- Country Code Field -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">{{ form.country_code.label }}</label>
-                        {{ form.country_code }}
-                        {% for error in form.country_code.errors %}
-                            <div class="invalid-feedback d-block">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Phone Number Field -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">{{ form.phone.label }}</label>
-                        {{ form.phone }}
-                        {% for error in form.phone.errors %}
-                            <div class="invalid-feedback d-block">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <button type="submit" class="btn btn-whatsapp btn-lg w-100 mt-3 shadow-sm">
-                        Enviar Código Seguro <i class="bi bi-arrow-right ms-2"></i>
-                    </button>
-                </form>
-                
-                <div class="text-center mt-4">
-                    <small class="text-muted">Ao continuar, você concorda em receber uma mensagem única.</small>
-                </div>
+<div class="card-wrapper">
+    <div class="photo-frame">
+        <div class="photo-inner">
+            <!-- {# PARA ADICIONAR UMA FOTO: adicione {% load static %} no topo e substitua o div.photo-placeholder por uma tag img com src apontando para sua foto #} -->
+            <div class="photo-placeholder">
+                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="27" cy="22" r="10" stroke="#26422a" stroke-width="2"/>
+                    <circle cx="53" cy="22" r="10" stroke="#26422a" stroke-width="2"/>
+                    <path d="M5 65 Q15 45 27 42 Q40 39 53 42 Q65 45 75 65" stroke="#26422a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M38 33 Q40 30 42 33 Q45 28 48 32 Q48 36 42 40 Q36 36 36 32 Q36 30 38 33Z" fill="#984216" opacity="0.8"/>
+                </svg>
             </div>
         </div>
+    </div>
+
+    <div class="card">
+        <!-- Rings -->
+        <div class="rings-icon">
+            <svg width="64" height="34" viewBox="0 0 64 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="22" cy="17" r="13" stroke="#26422a" stroke-width="2.5"/>
+                <circle cx="22" cy="17" r="9.5" stroke="#78898f" stroke-width="1"/>
+                <circle cx="42" cy="17" r="13" stroke="#26422a" stroke-width="2.5"/>
+                <circle cx="42" cy="17" r="9.5" stroke="#78898f" stroke-width="1"/>
+                <polygon points="22,8 25,12 22,16 19,12" fill="#984216" opacity="0.8"/>
+            </svg>
+        </div>
+
+        <p class="wedding-date">Você está convidado</p>
+        <h1 class="wedding-names">
+            <em>Aline</em>
+            <span class="ampersand"> & </span>
+            <em>Hugo</em>
+        </h1>
+        <p class="tagline">Para acessar o site, confirme seu número de WhatsApp</p>
+
+        <div class="divider">
+            <span class="divider-icon">✦</span>
+        </div>
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert-danger">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label class="form-label">{{ form.country_code.label }}</label>
+                {{ form.country_code }}
+                {% for error in form.country_code.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{{ form.phone.label }}</label>
+                {{ form.phone }}
+                {% for error in form.phone.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Receber código no WhatsApp
+            </button>
+        </form>
+
+        <p class="footer-note">
+            Você receberá uma única mensagem com seu código de acesso
+        </p>
     </div>
 </div>
 

@@ -1,26 +1,40 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card p-4 shadow-sm">
-                <h2 class="mb-4 text-success"><i class="bi bi-whatsapp"></i> Mensagens Enviadas com Sucesso!</h2>
-                <p class="lead">As mensagens foram enviadas para os convidados abaixo:</p>
-                <ul class="list-group mb-4">
-                    {% for guest in sent_guests %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>
-                            <strong>{{ guest.name }}</strong>
-                            <small class="text-muted ms-2">{{ guest.phone_number }}</small>
-                        </span>
-                        <span class="badge bg-success">Enviado</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <a href="{% url 'send_whatsapp_mass' %}" class="btn btn-outline-primary">Voltar para Envio em Massa</a>
-                <a href="{% url 'wedding_admin' %}" class="btn btn-link">Voltar ao Painel</a>
-            </div>
-        </div>
-    </div>
+<div class="card-premium max-w-lg mx-auto text-center" style="max-width: 600px; margin: 0 auto; padding: 3rem 2rem;">
+  <div style="background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%); 
+              padding: 2.5rem 2rem; 
+              border-radius: 20px; 
+              color: var(--white-pale);
+              margin-bottom: 2rem;
+              box-shadow: 0 4px 18px rgba(38,66,42,0.2);">
+    <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; display: block;" 
+         fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 10.742a3 3 0 00-2.204 3.071l.828 8.286A3 3 0 0010.28 25h3.44a3 3 0 002.972-2.901l.828-8.286a3 3 0 00-2.204-3.071m-6.632 0a9 9 0 0113.264 0M15 15h.008v.008H15V15zm-6 0h.008v.008H9V15z"></path>
+    </svg>
+    <h2 class="display-font fs-2" style="margin: 0; font-weight: 500;"><i class="bi bi-whatsapp"></i> Mensagens Disparadas!</h2>
+  </div>
+
+  <p class="fs-5 text-muted mb-4">O envio em lote foi concluído com sucesso para os destinatários abaixo:</p>
+
+  <ul class="list-group mb-4 mx-auto" style="max-width: 480px; text-align: left; font-size: 1.05rem;">
+    {% for guest in sent_guests %}
+    <li class="list-group-item d-flex justify-content-between align-items-center py-2.5 px-3" style="background: var(--white-pale); border-color: rgba(38,66,42,0.06);">
+      <span>
+        <strong style="color: var(--green);">{{ guest.name }}</strong>
+        <small class="text-muted ms-2" style="font-family: monospace;">{{ guest.phone_number }}</small>
+      </span>
+      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 rounded-pill" style="font-size:0.85rem;"><i class="bi bi-check me-1"></i>Enviado</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <div class="d-flex gap-2 justify-content-center mt-4">
+    <a href="{% url 'send_whatsapp_mass' %}" class="btn btn-success rounded-pill px-4 py-2 text-uppercase fw-semibold" style="background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%); border: none; font-size: 0.9rem; letter-spacing: 0.05em;">
+      <i class="bi bi-arrow-left me-1"></i> Novo Envio
+    </a>
+    <a href="{% url 'wedding_admin' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2 text-uppercase fw-semibold" style="color: var(--text-muted); border-color: rgba(38,66,42,0.2); font-size: 0.9rem; letter-spacing: 0.05em;">
+      <i class="bi bi-speedometer2 me-1"></i> Ir ao Painel
+    </a>
+  </div>
 </div>
 {% endblock %}

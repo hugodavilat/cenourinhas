@@ -1,13 +1,30 @@
 {% extends 'base.html' %}
-{% block title %}Confirmar Exclusão{% endblock %}
+{% block title %}Confirmar Exclusão — Casamento Aline & Hugo{% endblock %}
 {% block content %}
-<div class="section-inner accent-bg rounded shadow">
-  <h2 class="display-font accent">Confirmar Exclusão</h2>
-  <p>Tem certeza que deseja excluir este {{ type }}?</p>
-  <form method="post">
+<div class="card-premium max-w-lg mx-auto text-center" style="max-width: 600px; margin: 0 auto; padding: 3rem 2rem;">
+  <div style="background: linear-gradient(135deg, var(--red) 0%, var(--red-light) 100%); 
+              padding: 2rem 1rem; 
+              border-radius: 20px; 
+              color: var(--white-pale);
+              margin-bottom: 2rem;
+              box-shadow: 0 4px 18px rgba(152,66,22,0.2);">
+    <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; display: block;" 
+         fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+    </svg>
+    <h2 class="display-font fs-2" style="margin: 0; font-weight: 500;">Confirmar Exclusão</h2>
+  </div>
+
+  <p class="fs-5 text-muted mb-4">Tem certeza absoluta que deseja excluir permanentemente este registro de <strong>{{ type }}</strong>?</p>
+  
+  <form method="post" class="d-flex gap-2 justify-content-center">
     {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Excluir</button>
-    <a href="{% url 'wedding_admin' %}" class="btn btn-secondary ms-2">Cancelar</a>
+    <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 text-uppercase fw-semibold" style="background: linear-gradient(135deg, var(--red) 0%, var(--red-light) 100%); border: none; font-size: 0.9rem; letter-spacing: 0.05em;">
+      Confirmar Exclusão
+    </button>
+    <a href="{% url 'wedding_admin' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2 text-uppercase fw-semibold" style="color: var(--text-muted); border-color: rgba(38,66,42,0.2); font-size: 0.9rem; letter-spacing: 0.05em;">
+      Cancelar
+    </a>
   </form>
 </div>
 {% endblock %}

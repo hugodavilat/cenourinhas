@@ -1,21 +1,38 @@
 {% extends 'base.html' %}
-{% block title %}Administração do Casamento{% endblock %}
+{% block title %}Administração do Casamento — Painel de Controle{% endblock %}
 {% block content %}
-<div class="section-inner accent-bg rounded shadow">
-  <h2 class="display-font accent">Administração do Banco de Dados</h2>
-  <p class="mb-4">Gerencie os dados do casamento de forma fácil e rápida. Adicione, edite ou exclua registros das tabelas abaixo.</p>
-  <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="presentes-tab" data-bs-toggle="tab" data-bs-target="#presentes" type="button" role="tab">Presentes</button>
+<div class="card-premium">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+      <h2 class="display-font fs-2 text-success-dark mb-1">Painel de Controle do Casamento</h2>
+      <p class="text-muted small mb-0">Adicione, edite ou exclua registros das tabelas do casamento de Aline & Hugo.</p>
+    </div>
+    <div>
+      <a href="{% url 'send_whatsapp_mass' %}" class="btn btn-success rounded-pill px-3 py-2 text-uppercase fw-semibold" style="background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%); border: none; font-size: 0.88rem; letter-spacing: 0.05em;">
+        <i class="bi bi-whatsapp me-1"></i> WhatsApp Massivo
+      </a>
+    </div>
+  </div>
+
+  <ul class="nav nav-pills mb-4" id="adminTab" role="tablist" style="background: var(--white-pale); padding: 6px; border-radius: 14px; border: 1.5px solid rgba(38,66,42,0.06);">
+    <li class="nav-item" role="presentation" style="flex: 1; text-align: center;">
+      <button class="nav-link w-100 py-2 active" id="presentes-tab" data-bs-toggle="tab" data-bs-target="#presentes" type="button" role="tab" style="border-radius: 10px; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.04em;">
+        <i class="bi bi-gift me-1"></i> Presentes
+      </button>
     </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="pagamentos-tab" data-bs-toggle="tab" data-bs-target="#pagamentos" type="button" role="tab">Pagamentos</button>
+    <li class="nav-item" role="presentation" style="flex: 1; text-align: center;">
+      <button class="nav-link w-100 py-2" id="pagamentos-tab" data-bs-toggle="tab" data-bs-target="#pagamentos" type="button" role="tab" style="border-radius: 10px; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.04em;">
+        <i class="bi bi-credit-card me-1"></i> Pagamentos
+      </button>
     </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="convidados-tab" data-bs-toggle="tab" data-bs-target="#convidados" type="button" role="tab">Convidados</button>
+    <li class="nav-item" role="presentation" style="flex: 1; text-align: center;">
+      <button class="nav-link w-100 py-2" id="convidados-tab" data-bs-toggle="tab" data-bs-target="#convidados" type="button" role="tab" style="border-radius: 10px; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.04em;">
+        <i class="bi bi-people me-1"></i> Convidados
+      </button>
     </li>
   </ul>
-  <div class="tab-content" id="adminTabContent">
+
+  <div class="tab-content" id="adminTabContent" style="background: var(--white-pale); border-radius: 20px; padding: 2rem; border: 1px solid rgba(38,66,42,0.08);">
     <div class="tab-pane fade show active" id="presentes" role="tabpanel">
       {% include 'admin/presentes_table.html' %}
     </div>
@@ -27,4 +44,16 @@
     </div>
   </div>
 </div>
+
+<style>
+  .nav-pills .nav-link {
+    color: var(--text-muted);
+    background: transparent;
+    transition: all 0.3s;
+  }
+  .nav-pills .nav-link.active {
+    background: var(--green) !important;
+    color: var(--white-pale) !important;
+  }
+</style>
 {% endblock %}

@@ -26,26 +26,84 @@ def get_sdk():
 
 @guest_required
 def home(request):
+    from .models import ExtraGuest
+    user_id = request.session.get("otp_user_id")
+    is_extra = request.session.get("is_extra_guest_login", False)
+    extra_guest_phone = request.session.get("extra_guest_phone")
+
+    if is_extra and extra_guest_phone:
+        main_guest = Guest.objects.get(id=user_id)
+        extra_guest = ExtraGuest.objects.get(phone_number=extra_guest_phone, main_guest=main_guest)
+    else:
+        main_guest = Guest.objects.get(id=user_id)
+        extra_guest = None
+
+    # Sempre busca o estado atualizado do banco
+    main_guest.refresh_from_db()
+    extras = main_guest.extra_guests.all()
+    msg = None
+    success = False
+    
+    if request.method == "POST":
+        updated = False
+        # Principal
+        if f"confirm_{main_guest.id}" in request.POST:
+            confirm = request.POST.get(f"confirm_{main_guest.id}") == "1"
+            if confirm:
+                main_guest.is_confirmed = True
+                main_guest.is_rejected = False
+                main_guest.not_answered = False
+                msg = f"Presença de {main_guest.name} confirmada!"
+            else:
+                main_guest.is_confirmed = False
+                main_guest.is_rejected = True
+                main_guest.not_answered = False
+                msg = f"Presença de {main_guest.name} rejeitada!"
+            main_guest.save()
+            updated = True
+        # Extras
+        for extra in extras:
+            if f"confirm_extra_{extra.id}" in request.POST:
+                confirm = request.POST.get(f"confirm_extra_{extra.id}") == "1"
+                if confirm:
+                    extra.is_confirmed = True
+                    extra.is_rejected = False
+                    extra.not_answered = False
+                    msg = f"Presença de {extra.name} confirmada!"
+                else:
+                    extra.is_confirmed = False
+                    extra.is_rejected = True
+                    extra.not_answered = False
+                    msg = f"Presença de {extra.name} rejeitada!"
+                extra.save()
+                updated = True
+        if updated:
+            success = True
+        # Atualiza os objetos após salvar
+        main_guest.refresh_from_db()
+        extras = main_guest.extra_guests.all()
+
+    presentes = Presente.objects.all()
     context = {
+        'main_guest': main_guest,
+        'extras': extras,
+        'success': success,
+        'msg': msg,
+        'presentes': presentes,
         'bride': 'Aline',
         'groom': 'Hugo',
-        'wedding_date': 'Data a confirmar',
-        'venue': 'Local a confirmar',
+        'wedding_date': '10 e 11 de outubro de 2026',
+        'venue': 'Quintal Pra Festas / Templo Cervejeiro',
         'address': '',
-        'message': 'Estamos preparando uma celebração especial — mais informações em breve.'
+        'message': 'Estamos preparando uma celebração especial — mais informações abaixo.'
     }
     return render(request, 'index.html', context)
 
 
 @guest_required
 def presente(request):
-    """Render the gift registry page."""
-    presentes = Presente.objects.all()
-    context = {
-        'presentes': presentes,
-        'message': 'Ajude esse casal que ama presentes! 💝'
-    }
-    return render(request, 'presente.html', context)
+    """Redirect to presents section on single home page."""
+    return redirect(reverse('home') + '#presentes')
 
 
 @guest_required
@@ -206,62 +264,8 @@ def pagamento_pendente(request):
 
 @guest_required
 def confirmacao_familia(request):
-    from .models import ExtraGuest
-    user_id = request.session.get("otp_user_id")
-    is_extra = request.session.get("is_extra_guest_login", False)
-    extra_guest_phone = request.session.get("extra_guest_phone")
-
-    if is_extra and extra_guest_phone:
-        main_guest = Guest.objects.get(id=user_id)
-        extra_guest = ExtraGuest.objects.get(phone_number=extra_guest_phone, main_guest=main_guest)
-    else:
-        main_guest = Guest.objects.get(id=user_id)
-        extra_guest = None
-
-    # Sempre busca o estado atualizado do banco
-    main_guest.refresh_from_db()
-    extras = main_guest.extra_guests.all()
-    msg = None
-    success = False
-    if request.method == "POST":
-        updated = False
-        # Principal
-        if f"confirm_{main_guest.id}" in request.POST:
-            confirm = request.POST.get(f"confirm_{main_guest.id}") == "1"
-            if confirm:
-                main_guest.is_confirmed = True
-                main_guest.is_rejected = False
-                main_guest.not_answered = False
-                msg = f"Presença de {main_guest.name} confirmada!"
-            else:
-                main_guest.is_confirmed = False
-                main_guest.is_rejected = True
-                main_guest.not_answered = False
-                msg = f"Presença de {main_guest.name} rejeitada!"
-            main_guest.save()
-            updated = True
-        # Extras
-        for extra in extras:
-            if f"confirm_extra_{extra.id}" in request.POST:
-                confirm = request.POST.get(f"confirm_extra_{extra.id}") == "1"
-                if confirm:
-                    extra.is_confirmed = True
-                    extra.is_rejected = False
-                    extra.not_answered = False
-                    msg = f"Presença de {extra.name} confirmada!"
-                else:
-                    extra.is_confirmed = False
-                    extra.is_rejected = True
-                    extra.not_answered = False
-                    msg = f"Presença de {extra.name} rejeitada!"
-                extra.save()
-                updated = True
-        if updated:
-            success = True
-        # Atualiza os objetos após salvar
-        main_guest.refresh_from_db()
-        extras = main_guest.extra_guests.all()
-    return render(request, "confirmacao_familia.html", {"main_guest": main_guest, "extras": extras, "success": success, "msg": msg})
+    """Redirect to RSVP section on single home page."""
+    return redirect(reverse('home') + '#rsvp')
 
 # Admin dashboard view
 @wedding_admin_required

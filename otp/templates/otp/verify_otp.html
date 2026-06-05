@@ -1,76 +1,565 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <title>Casamento Aline & Hugo — Verificação</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
     <style>
-        body { background-color: #f8f9fa; height: 100vh; display: flex; align-items: center; }
-        .otp-card { border: none; border-radius: 1rem; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); }
-        .otp-input input { text-align: center; font-size: 1.5rem; font-weight: bold; letter-spacing: 0.5rem; }
+        :root {
+            --green:       #26422a;
+            --green-mid:   #3a6040;
+            --green-light: #4e7a55;
+            --red:         #984216;
+            --red-light:   #b85a30;
+            --white:       #e4d6c5;
+            --white-warm:  #ede1d2;
+            --white-pale:  #f5ede0;
+            --blue:        #78898f;
+            --blue-light:  #96aab0;
+            --blue-pale:   #d0dadd;
+            --text-main:   #1a2e1d;
+            --text-muted:  #5a7060;
+            --shadow:      rgba(38, 66, 42, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background-color: var(--white);
+            font-family: 'Jost', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse at 15% 15%, rgba(38,66,42,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 85%, rgba(152,66,22,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 0%,  rgba(120,137,143,0.06) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .corner-decor {
+            position: fixed;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        .corner-decor.tl { top: -20px; left: -20px; }
+        .corner-decor.br { bottom: -20px; right: -20px; transform: rotate(180deg); }
+
+        /* Floating petals */
+        .petal {
+            position: fixed;
+            width: 8px;
+            height: 12px;
+            border-radius: 50% 50% 50% 0;
+            opacity: 0;
+            animation: petalFall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes petalFall {
+            0%   { transform: translateY(-20px) rotate(0deg);   opacity: 0; }
+            10%  { opacity: 0.35; }
+            90%  { opacity: 0.15; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        .card-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            padding: 1rem;
+            animation: fadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--white-warm);
+            border-radius: 24px;
+            padding: 2.5rem 2.5rem 2rem;
+            box-shadow:
+                0 2px 6px var(--shadow),
+                0 14px 44px rgba(38,66,42,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+            border: 1px solid rgba(38,66,42,0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--green), var(--red), var(--blue), var(--green), transparent);
+        }
+
+        /* Envelope icon */
+        .envelope-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .envelope-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .envelope-wrap svg.pulse-ring {
+            position: absolute;
+            animation: pulseRing 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseRing {
+            0%, 100% { transform: scale(0.95); opacity: 0.3; }
+            50%       { transform: scale(1.1);  opacity: 0; }
+        }
+
+        .wedding-date {
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--green-mid);
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+
+        .wedding-names {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 400;
+            font-size: 2.2rem;
+            color: var(--green);
+            text-align: center;
+            line-height: 1.1;
+            margin-bottom: 0.4rem;
+        }
+
+        .wedding-names em { font-style: italic; color: var(--green); }
+        .ampersand { color: var(--red); font-style: italic; }
+
+        .tagline {
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 1.6rem;
+            letter-spacing: 0.03em;
+            line-height: 1.5;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.8rem;
+        }
+        .divider::before { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--blue-pale)); }
+        .divider::after  { content: ''; flex: 1; height: 1px; background: linear-gradient(to left,  transparent, var(--blue-pale)); }
+        .divider-icon { color: var(--green-mid); font-size: 0.7rem; }
+
+        /* OTP */
+        .otp-wrapper { margin-bottom: 1.5rem; }
+
+        .otp-label {
+            display: block;
+            font-family: 'Jost', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--green-mid);
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .otp-boxes {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: center;
+        }
+
+        .otp-box {
+            width: 54px;
+            height: 64px;
+            border: 1.5px solid rgba(38,66,42,0.22);
+            border-radius: 12px;
+            background: var(--white-pale);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--green);
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+            caret-color: var(--green);
+        }
+
+        .otp-box:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(38,66,42,0.12);
+            transform: translateY(-2px);
+            background: var(--white-warm);
+        }
+
+        .otp-box.filled {
+            border-color: var(--red);
+            background: rgba(152,66,22,0.04);
+        }
+
+        .hidden-otp-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
+        }
+
+        .alert-danger {
+            background: rgba(152,66,22,0.06);
+            border: 1px solid rgba(152,66,22,0.25);
+            color: var(--red);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+            font-family: 'Jost', sans-serif;
+            text-align: center;
+        }
+
+        .invalid-feedback {
+            color: var(--red);
+            font-size: 0.78rem;
+            margin-top: 0.5rem;
+            font-family: 'Jost', sans-serif;
+            text-align: center;
+        }
+
+        /* Submit button — red accent for the confirm step */
+        .btn-submit {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: linear-gradient(135deg, var(--red) 0%, var(--red-light) 100%);
+            color: var(--white-pale);
+            border: none;
+            border-radius: 12px;
+            font-family: 'Jost', sans-serif;
+            font-weight: 500;
+            font-size: 0.88rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+            box-shadow: 0 4px 18px rgba(152,66,22,0.28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-submit:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(152,66,22,0.38);
+            filter: brightness(1.07);
+        }
+
+        .btn-submit:active { transform: translateY(0); }
+
+        /* Progress dots */
+        .progress-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--blue-pale);
+        }
+
+        .dot.active {
+            background: var(--green);
+            width: 20px;
+            border-radius: 3px;
+        }
+
+        /* Resend */
+        .resend-section { text-align: center; }
+
+        .resend-text {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            margin-bottom: 0.4rem;
+        }
+
+        #timer {
+            font-family: 'Jost', sans-serif;
+            font-size: 0.8rem;
+            color: var(--blue);
+            font-weight: 500;
+        }
+
+        #timer svg {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 4px;
+            animation: ticktock 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes ticktock {
+            from { transform: rotate(-10deg); }
+            to   { transform: rotate(10deg); }
+        }
+
+        .resend-link {
+            color: var(--green-mid);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-family: 'Jost', sans-serif;
+            border-bottom: 1px solid var(--blue-pale);
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .resend-link:hover { color: var(--green); border-color: var(--green); }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            margin-top: 1.2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            letter-spacing: 0.04em;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: var(--green); }
+
+        @media (max-width: 480px) {
+            .card { padding: 2rem 1.4rem 1.5rem; }
+            .wedding-names { font-size: 1.9rem; }
+            .otp-box { width: 46px; height: 56px; font-size: 1.7rem; }
+            .otp-boxes { gap: 0.4rem; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card otp-card p-4">
-                <div class="text-center mb-4">
-                    <div class="display-6 text-primary mb-2"><i class="bi bi-shield-lock"></i></div>
-                    <h2 class="fw-bold">Verificar Identidade</h2>
-                    <p class="text-muted">Enviamos um código de 5 dígitos para seu WhatsApp. Por favor, digite-o abaixo.</p>
-                </div>
+<!-- Floating petals in wedding palette -->
+<div class="petal" style="left:10%;background:#26422a;animation-duration:8s;animation-delay:0s;"></div>
+<div class="petal" style="left:20%;background:#78898f;animation-duration:10s;animation-delay:1s;transform:rotate(45deg)"></div>
+<div class="petal" style="left:55%;background:#984216;animation-duration:7s;animation-delay:2s;"></div>
+<div class="petal" style="left:75%;background:#26422a;animation-duration:9s;animation-delay:0.5s;transform:rotate(20deg)"></div>
+<div class="petal" style="left:88%;background:#78898f;animation-duration:11s;animation-delay:3s;"></div>
+<div class="petal" style="left:35%;background:#984216;animation-duration:8.5s;animation-delay:1.5s;"></div>
 
-                <form method="POST" novalidate>
-                    {% csrf_token %}
+<!-- Corner decor -->
+<svg class="corner-decor tl" width="200" height="200" viewBox="0 0 200 200" fill="none">
+    <path d="M10,10 Q60,10 80,40 Q100,70 60,80 Q20,90 10,50 Q0,20 10,10Z" fill="#26422a"/>
+    <path d="M30,5 Q50,30 40,60 Q30,80 10,70 Q-5,55 15,35Z" fill="#984216"/>
+    <circle cx="85" cy="45" r="5" fill="#26422a"/>
+    <circle cx="55" cy="85" r="3" fill="#78898f"/>
+</svg>
+<svg class="corner-decor br" width="200" height="200" viewBox="0 0 200 200" fill="none">
+    <path d="M10,10 Q60,10 80,40 Q100,70 60,80 Q20,90 10,50 Q0,20 10,10Z" fill="#26422a"/>
+    <path d="M30,5 Q50,30 40,60 Q30,80 10,70 Q-5,55 15,35Z" fill="#984216"/>
+    <circle cx="85" cy="45" r="5" fill="#26422a"/>
+</svg>
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger text-center">
-                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+<div class="card-wrapper">
+    <div class="card">
+        <!-- Step indicator -->
+        <div class="progress-dots">
+            <div class="dot"></div>
+            <div class="dot active"></div>
+        </div>
 
-                    {% for field in form %}
-                        <div class="mb-4 otp-input">
-                            <input type="text" 
-                                   name="{{ field.name }}" 
-                                   class="form-control form-control-lg {% if field.errors %}is-invalid{% endif %}" 
-                                   placeholder="000000"
-                                   maxlength="6"
-                                   autocomplete="one-time-code">
-                            {% for error in field.errors %}
-                                <div class="invalid-feedback d-block text-center mt-2"><strong>Erro:</strong> {{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-
-                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mb-3">
-                        Verificar e Fazer Login
-                    </button>
-                </form>
-
-                <div class="text-center">
-                    <p class="mb-1 text-muted">Não recebeu o código?</p>
-                    <div id="timer" class="small fw-bold text-primary">Reenviar disponível em <span id="seconds">30</span>s</div>
-                    <a href="{% url 'login_phone' %}" id="resend-link" class="btn btn-link btn-sm d-none">Reenviar Código</a>
-                </div>
-            </div>
-            
-            <div class="text-center mt-3">
-                <a href="{% url 'login_phone' %}" class="text-decoration-none text-muted small">
-                    <i class="bi bi-chevron-left"></i> Usar um número diferente
-                </a>
+        <!-- Envelope icon -->
+        <div class="envelope-icon">
+            <div class="envelope-wrap">
+                <svg class="pulse-ring" width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="35" fill="none" stroke="#78898f" stroke-width="2"/>
+                </svg>
+                <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                    <circle cx="28" cy="28" r="28" fill="#d0dadd" opacity="0.4"/>
+                    <rect x="10" y="17" width="36" height="24" rx="4" fill="none" stroke="#26422a" stroke-width="2"/>
+                    <path d="M10 21 L28 32 L46 21" stroke="#26422a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M25 27.5 Q28 24 31 27.5 Q34 23 37 27 Q37 31 28 36 Q19 31 19 27 Q19 24 22 27.5Z" fill="#984216" opacity="0.75" transform="scale(0.6) translate(19 12)"/>
+                </svg>
             </div>
         </div>
+
+        <p class="wedding-date">Confirmação de acesso</p>
+        <h1 class="wedding-names">
+            <em>Aline</em>
+            <span class="ampersand"> & </span>
+            <em>Hugo</em>
+        </h1>
+        <p class="tagline">
+            Enviamos um código de 5 dígitos para o seu WhatsApp.<br>
+            Insira-o abaixo para confirmar sua presença.
+        </p>
+
+        <div class="divider">
+            <span class="divider-icon">✦</span>
+        </div>
+
+        <form method="POST" novalidate id="otp-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert-danger">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <input type="text"
+                       id="django-otp-field"
+                       name="{{ field.name }}"
+                       class="hidden-otp-input"
+                       maxlength="5"
+                       autocomplete="one-time-code">
+
+                <div class="otp-wrapper">
+                    <label class="otp-label">Seu código secreto</label>
+
+                    <div class="otp-boxes" id="otp-boxes">
+                        <input class="otp-box" type="text" inputmode="numeric" maxlength="1" data-index="0" autocomplete="off">
+                        <input class="otp-box" type="text" inputmode="numeric" maxlength="1" data-index="1" autocomplete="off">
+                        <input class="otp-box" type="text" inputmode="numeric" maxlength="1" data-index="2" autocomplete="off">
+                        <input class="otp-box" type="text" inputmode="numeric" maxlength="1" data-index="3" autocomplete="off">
+                        <input class="otp-box" type="text" inputmode="numeric" maxlength="1" data-index="4" autocomplete="off">
+                    </div>
+
+                    {% for error in field.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn-submit" id="submit-btn" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                Confirmar presença
+            </button>
+        </form>
+
+        <div class="resend-section">
+            <p class="resend-text">Não recebeu o código?</p>
+            <div id="timer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Reenviar em <span id="seconds">30</span>s
+            </div>
+            <a href="{% url 'login_phone' %}" id="resend-link" class="resend-link" style="display:none">
+                ✦ Reenviar código
+            </a>
+        </div>
     </div>
+
+    <a href="{% url 'login_phone' %}" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Usar um número diferente
+    </a>
 </div>
 
 <script>
-    // Simple UX Timer for the Resend button
+    const boxes = document.querySelectorAll('.otp-box');
+    const hiddenInput = document.getElementById('django-otp-field');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function syncToHidden() {
+        const val = Array.from(boxes).map(b => b.value).join('');
+        hiddenInput.value = val;
+        submitBtn.disabled = val.length < 5;
+        boxes.forEach(b => {
+            if (b.value) b.classList.add('filled');
+            else b.classList.remove('filled');
+        });
+    }
+
+    boxes.forEach((box, i) => {
+        box.addEventListener('input', (e) => {
+            const val = e.target.value.replace(/[^0-9]/g, '');
+            box.value = val.slice(-1);
+            syncToHidden();
+            if (val && i < boxes.length - 1) boxes[i + 1].focus();
+        });
+
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace') {
+                if (!box.value && i > 0) {
+                    boxes[i - 1].focus();
+                    boxes[i - 1].value = '';
+                    syncToHidden();
+                }
+            }
+            if (e.key === 'ArrowLeft'  && i > 0)              boxes[i-1].focus();
+            if (e.key === 'ArrowRight' && i < boxes.length-1) boxes[i+1].focus();
+        });
+
+        box.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+            paste.split('').forEach((char, j) => { if (boxes[j]) boxes[j].value = char; });
+            syncToHidden();
+            boxes[Math.min(paste.length, boxes.length - 1)].focus();
+        });
+    });
+
+    boxes[0].focus();
+
+    if (hiddenInput.value) {
+        hiddenInput.value.split('').forEach((char, i) => { if (boxes[i]) boxes[i].value = char; });
+        syncToHidden();
+    }
+
+    // Countdown
     let timeLeft = 30;
-    const timerElement = document.getElementById('timer');
+    const timerEl   = document.getElementById('timer');
     const resendLink = document.getElementById('resend-link');
     const secondsSpan = document.getElementById('seconds');
 
@@ -79,8 +568,8 @@
         secondsSpan.textContent = timeLeft;
         if (timeLeft <= 0) {
             clearInterval(countdown);
-            timerElement.classList.add('d-none');
-            resendLink.classList.remove('d-none');
+            timerEl.style.display = 'none';
+            resendLink.style.display = 'inline';
         }
     }, 1000);
 </script>
