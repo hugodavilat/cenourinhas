@@ -50,7 +50,8 @@ func ensureConnected(c *gin.Context) bool {
 }
 
 // URL do seu servidor Django que processará a lógica da IA
-const DjangoWebhookURL = "http://localhost:8000/api/whatsapp/gemini"
+// Pode ser sobrescrito pela variável de ambiente `DJANGO_WEBHOOK_URL`.
+var DjangoWebhookURL = ""
 
 // notifyDjango envia a mensagem recebida para o seu backend em Python, usando JID como identificador
 func notifyDjango(jid string, message string) {
@@ -70,6 +71,14 @@ func notifyDjango(jid string, message string) {
 }
 
 func main() {
+	// Configure Django webhook URL from environment, default to IPv4 loopback
+	if v := os.Getenv("DJANGO_WEBHOOK_URL"); v != "" {
+		DjangoWebhookURL = v
+	} else {
+		DjangoWebhookURL = "http://127.0.0.1:8000/api/whatsapp/gemini"
+	}
+	log.Printf("[Django Link] Using webhook URL: %s\n", DjangoWebhookURL)
+
 	// 1. Setup Database with Context
 	dbLog := waLog.Stdout("Database", "INFO", true)
 	// Added context.Background() here
