@@ -64,17 +64,18 @@ def login_phone(request):
             if DEBUG:
                 print(f"DEBUG: OTP para {full_phone} é {code}")
                 # Skip WhatsApp in debug mode - auto-verify
-            else:
-                try:
-                    sent = send_whatsapp_otp(full_phone, code)
-                except Exception as exc:
-                    print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
-                    messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
+            try:
+                sent = send_whatsapp_otp(full_phone, code)
+            except Exception as exc:
+                print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
+                messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
+                if not DEBUG:
                     return redirect("login_phone")
 
-                if not sent:
-                    print(f"Redirect: não foi possível enviar OTP para {full_phone}")
-                    messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Verifique o número ou tente novamente mais tarde.")
+            if not sent:
+                print(f"Redirect: não foi possível enviar OTP para {full_phone}")
+                messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Verifique o número ou tente novamente mais tarde.")
+                if not DEBUG:
                     return redirect("login_phone")
 
             OTP.objects.create(

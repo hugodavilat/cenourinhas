@@ -82,3 +82,6 @@ pip-delete-this-directory.txt
 whatsapp_service/whatsapp_service
 whatsapp_service/whatsapp_service_linux
 whatsapp_service/whatsapp_service_mac
+
+# wpp binaries
+whatsapp_service/run_wpp
