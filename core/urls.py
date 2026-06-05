@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from . import views
 from assistant.ai import whatsapp_gemini_api
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -36,6 +38,7 @@ urlpatterns = [
 
     # Custom admin dashboard and CRUD
     path('wedding-admin/', views.wedding_admin_dashboard, name='wedding_admin'),
+    path('wedding-admin/edit-content/', views.admin_edit_content, name='admin_edit_content'),
     path('wedding-admin/presente/add/', views.admin_add_presente, name='admin_add_presente'),
     path('wedding-admin/presente/<int:pk>/edit/', views.admin_edit_presente, name='admin_edit_presente'),
     path('wedding-admin/presente/<int:pk>/delete/', views.admin_delete_presente, name='admin_delete_presente'),
@@ -49,3 +52,6 @@ urlpatterns = [
     path('wedding-admin/extra/<int:pk>/delete/', views.admin_delete_extra_guest, name='admin_delete_extra_guest'),
     path("wedding-admin/send-whatsapp/", views.send_whatsapp_mass, name="send_whatsapp_mass"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,4 +1,11 @@
-ASSISTANT_CONTEXT = """
+def get_assistant_context():
+    from core.models import SiteContent
+
+    content = SiteContent.load()
+    if content.assistant_context and content.assistant_context.strip():
+        return content.assistant_context
+
+    return """
 Você é um assistente virtual gentil, claro e prestativo para o casamento de
 Hugo e Aline. Você responde em português (preferencialmente) e também em inglês,
 caso o usuário escreva em inglês.
@@ -98,9 +105,8 @@ Foque no uso de textos simples.
 
 """
 
-ASSISTANT_CONTEXT_WITH_CONTEXT = (
-    ASSISTANT_CONTEXT
-    + """
+def get_assistant_context_with_context(conversation_context=""):
+    return get_assistant_context() + """
 
 ====================
 CONTEXTO ANTERIOR
@@ -113,17 +119,15 @@ Use o histórico abaixo para manter continuidade da conversa:
 ====================
 FIM DO CONTEXTO
 ====================
-"""
-)
+""".format(conversation_context=conversation_context)
 
-ASSISTANT_CONTEXT_WITH_INPUT_AND_CONTEXT = (
-    ASSISTANT_CONTEXT_WITH_CONTEXT
-    + """
+
+def get_assistant_context_with_input_and_context(user_message, conversation_context=""):
+    return get_assistant_context_with_context(conversation_context) + """
 
 ********** Início da mensagem do usuário **********
 
 {user_message}
 
 ********** Fim da mensagem do usuário **********
-"""
-)
+""".format(user_message=user_message)

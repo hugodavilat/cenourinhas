@@ -192,6 +192,44 @@
     font-weight: 500;
     padding: 0.55rem 1.3rem;
     transition: all 0.2s;
+    min-width: 8rem;
+  }
+
+  .rsvp-guest-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rsvp-guest-actions .badge,
+  .rsvp-guest-actions .btn-rsvp-action {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  @media (max-width: 768px) {
+    .rsvp-guest-item {
+      padding: 1rem 1rem;
+    }
+
+    .rsvp-guest-item .rsvp-guest-actions {
+      justify-content: center;
+    }
+
+    .rsvp-guest-actions .badge,
+    .rsvp-guest-actions .btn-rsvp-action {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .rsvp-guest-item .fs-5 {
+      width: 100%;
+      min-width: 0;
+    }
   }
 
   /* Gift registry list styling */
@@ -283,7 +321,11 @@
   <!-- Photo of the Couple with Gradient Border -->
   <div class="photo-frame">
     <div class="photo-inner">
-      <img src="{% static 'imgs/jangal.jpg' %}" alt="Aline e Hugo">
+      {% if site_content.hero_photo %}
+        <img src="{{ site_content.hero_photo.url }}" alt="Aline e Hugo">
+      {% else %}
+        <img src="{% static 'imgs/jangal.jpg' %}" alt="Aline e Hugo">
+      {% endif %}
     </div>
   </div>
 
@@ -305,7 +347,7 @@
     <em>Hugo</em>
   </h1>
   <p class="lead text-muted max-w-2xl mx-auto fs-5 col-md-8 px-3">
-    Quase um carnaval fora de época. Estamos preparando uma comemoração inesquecível e contamos com você!
+    {{ site_content.hero_text }}
   </p>
   <p class="mb-4 mt-3">
     <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fs-6">
@@ -326,21 +368,18 @@
   <div class="card-premium">
     <div class="row align-items-center g-5">
       <div class="col-12 col-md-7">
-        <h2 class="display-font text-success-dark mb-4 fs-1">Por que "Cenourinhas"?</h2>
+        <h2 class="display-font text-success-dark mb-4 fs-1">{{ site_content.cenourinhas_title }}</h2>
         <div class="text-muted fs-5" style="text-align: justify; line-height: 1.7;">
-          <p class="mb-3">
-            Muitos perguntam: "Por que vocês se chamam de Cenourinhas?".
-            Tudo começou com o nosso lema oficial em cada treino de corrida: <strong>"To Bem Não..."</strong>.
-          </p>
-          <p class="mb-0">
-            O meme do <em>"kkkrai cenorinha, to bem não"</em> virou nossa piada diária, e sem que percebêssemos, o apelido pegou.
-            Hoje, "Cenourinha" é a nossa forma mais natural, leve e carinhosa de chamar um ao outro.
-          </p>
+          {{ site_content.cenourinhas_text|linebreaksbr }}
         </div>
       </div>
       <div class="col-12 col-md-5 d-flex justify-content-center">
         <div class="shadow-lg rounded-4 overflow-hidden border p-2 bg-white" style="max-width:320px;">
-          <img src="{% static 'imgs/kkkrai.jpeg' %}" class="img-fluid rounded-3" alt="Meme Cenorinha">
+          {% if site_content.cenourinhas_photo %}
+            <img src="{{ site_content.cenourinhas_photo.url }}" class="img-fluid rounded-3" alt="Por que Cenourinhas">
+          {% else %}
+            <img src="{% static 'imgs/kkkrai.jpeg' %}" class="img-fluid rounded-3" alt="Meme Cenorinha">
+          {% endif %}
         </div>
       </div>
     </div>
@@ -355,28 +394,12 @@
 <section id="sobre-o-casal" class="py-4">
   <div class="card-premium">
     <div class="text-center mb-5">
-      <h2 class="display-font fs-1">Sobre o Casal</h2>
-      <p class="text-muted tracking-widest text-uppercase small" style="letter-spacing: 0.1em;">Duas metades que se completam</p>
+      <h2 class="display-font fs-1">{{ site_content.sobre_title }}</h2>
+      <p class="text-muted tracking-widest text-uppercase small" style="letter-spacing: 0.1em;">{{ site_content.sobre_subtitle }}</p>
     </div>
     <div class="row g-4 justify-content-center text-muted fs-5" style="line-height: 1.7; text-align: justify;">
       <div class="col-lg-10">
-        <p class="mb-4">
-          Ela é uma paulista raiz, dona de uma tatuagem do Banespa no braço e apaixonada por prédios antigos e corridas no asfalto.
-          Ele é tricolor doente pelo Fluminense, fã de moqueca, do mar e de correr com o pé na areia.
-        </p>
-        <p class="mb-4">
-          Ela, vegetariana da cidade grande, jurava que o filhote de um cavalo era um bezerro.
-          Ele virou polvotariano desde que assistiu ao documentário <em>"Professor Polvo"</em>. Achou o bicho inteligente e curioso demais para ser comido.
-        </p>
-        <p class="mb-4">
-          Ela adora observar a lua e suas fases como quem segue religiosamente capítulos de uma novela.
-          Ele segue olhando para o chão, pensando no algoritmo de programação ideal que melhor divide uma pizza entre três pessoas para que todas fiquem perfeitamente satisfeitas.
-        </p>
-        <p class="mb-0">
-          E aí, num desses acasos divertidos que parecem brincadeira do destino, os dois se esbarraram em Belo Horizonte, dentro de uma cervejaria falida na Zona Sul.
-          Foi ali, entre copos vazios e risadas tímidas, que tudo começou a fazer sentido rápido demais.
-          Porque, no fim, quando duas pessoas de mundos tão diferentes combinam com essa sintonia... não há o que discutir: estava escrito nas estrelas.
-        </p>
+        {{ site_content.sobre_text|linebreaksbr }}
       </div>
     </div>
   </div>
@@ -392,20 +415,17 @@
     <div class="row align-items-center g-5">
       <div class="col-12 col-md-5 d-flex justify-content-center">
         <div class="rounded-4 overflow-hidden shadow-lg border p-1 bg-white" style="width: 100%; max-width: 340px; height: 420px;">
-          <img src="{% static 'imgs/jangal.jpg' %}" alt="Foto no Jangal" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+          {% if site_content.jornada_photo %}
+            <img src="{{ site_content.jornada_photo.url }}" alt="Nossa Jornada" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+          {% else %}
+            <img src="{% static 'imgs/jangal.jpg' %}" alt="Foto no Jangal" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+          {% endif %}
         </div>
       </div>
       <div class="col-12 col-md-7">
-        <h2 class="display-font fs-1 mb-4">Nossa Jornada</h2>
+        <h2 class="display-font fs-1 mb-4">{{ site_content.jornada_title }}</h2>
         <div class="text-muted fs-5" style="text-align: justify; line-height: 1.7;">
-          <p class="mb-3">Jamais subestimemos o romantismo de um encontro casual no Tinder.</p>
-          <p class="mb-3">
-            Para nós, a vontade de dividir o travesseiro surgiu logo cedo, impulsionada pelo isolamento forçado de uma Covid no comecinho do namoro.
-            O que começou despretensioso acelerou: em dois meses desbravamos o litoral do Ceará; em três veio o pedido de namoro; em pouco mais de um ano, montamos nosso lar sob o mesmo teto. E agora, a decisão mais feliz de oficializar essa união.
-          </p>
-          <p class="mb-0 text-success-dark fst-italic fw-medium text-center mt-4 fs-4">
-            "Deve ser um tédio não ser 'emocionado' na hora de amar."
-          </p>
+          {{ site_content.jornada_text|linebreaksbr }}
         </div>
       </div>
     </div>
@@ -513,18 +533,18 @@
             </span>
           </div>
 
-          <div class="d-flex gap-2 align-items-center">
+          <div class="rsvp-guest-actions">
             <!-- Status Badges -->
             {% if main_guest.is_confirmed %}
-              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill me-2">
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
                 <i class="bi bi-check-lg"></i> Confirmado
               </span>
             {% elif main_guest.is_rejected %}
-              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill me-2">
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">
                 <i class="bi bi-x-lg"></i> Recusado
               </span>
             {% else %}
-              <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill me-2">
+              <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">
                 <i class="bi bi-question-circle"></i> Pendente
               </span>
             {% endif %}
@@ -546,23 +566,23 @@
             <span class="fs-5 fw-medium {% if extra.is_confirmed %}text-success{% elif extra.is_rejected %}text-danger{% endif %}">
               <span class="text-muted fs-6 me-1">↳</span> {{ extra.name }}
               {% if extra.phone_number %}
-              <small class="text-muted d-block ms-4" style="font-size:0.85rem;"><i class="bi bi-telephone"></i> {{ extra.phone_number }}</small>
+              <small class="text-muted d-block" style="font-size:0.85rem;"><i class="bi bi-telephone"></i> {{ extra.phone_number }}</small>
               {% endif %}
             </span>
           </div>
 
-          <div class="d-flex gap-2 align-items-center">
+          <div class="rsvp-guest-actions">
             <!-- Status Badges -->
             {% if extra.is_confirmed %}
-              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill me-2">
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
                 <i class="bi bi-check-lg"></i> Confirmado
               </span>
             {% elif extra.is_rejected %}
-              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill me-2">
+              <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">
                 <i class="bi bi-x-lg"></i> Recusado
               </span>
             {% else %}
-              <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill me-2">
+              <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">
                 <i class="bi bi-question-circle"></i> Pendente
               </span>
             {% endif %}

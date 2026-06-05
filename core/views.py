@@ -11,8 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.urls import reverse
 
-from .forms import WhatsAppMessageForm, PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm
-from .models import Presente, Pagamento, Guest, ExtraGuest
+from .forms import WhatsAppMessageForm, PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm, SiteContentForm
+from .models import Presente, Pagamento, Guest, ExtraGuest, SiteContent
 from .decorators import guest_required, wedding_admin_required
 
 
@@ -84,12 +84,14 @@ def home(request):
         extras = main_guest.extra_guests.all()
 
     presentes = Presente.objects.all()
+    site_content = SiteContent.load()
     context = {
         'main_guest': main_guest,
         'extras': extras,
         'success': success,
         'msg': msg,
         'presentes': presentes,
+        'site_content': site_content,
         'bride': 'Aline',
         'groom': 'Hugo',
         'wedding_date': '10 e 11 de outubro de 2026',
@@ -98,6 +100,36 @@ def home(request):
         'message': 'Estamos preparando uma celebração especial — mais informações abaixo.'
     }
     return render(request, 'index.html', context)
+
+
+@wedding_admin_required
+def admin_edit_content(request):
+    content = SiteContent.load()
+    if request.method == 'POST':
+        form = SiteContentForm(request.POST, request.FILES, instance=content)
+
+        # Handle remove checkboxes for images
+        if form.is_valid():
+            # If admin requested removal of images, clear them before saving
+            if request.POST.get('remove_hero_photo') == '1' and content.hero_photo:
+                content.hero_photo.delete(save=False)
+                content.hero_photo = None
+            if request.POST.get('remove_cenourinhas_photo') == '1' and content.cenourinhas_photo:
+                content.cenourinhas_photo.delete(save=False)
+                content.cenourinhas_photo = None
+            if request.POST.get('remove_jornada_photo') == '1' and content.jornada_photo:
+                content.jornada_photo.delete(save=False)
+                content.jornada_photo = None
+            if request.POST.get('remove_otp_page_photo') == '1' and content.otp_page_photo:
+                content.otp_page_photo.delete(save=False)
+                content.otp_page_photo = None
+
+            form.save()
+            messages.success(request, 'Conteúdo salvo com sucesso.')
+            return redirect('admin_edit_content')
+    else:
+        form = SiteContentForm(instance=content)
+    return render(request, 'admin/edit_content.html', {'form': form, 'content': content})
 
 
 @guest_required

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.models import Guest, ExtraGuest
+from core.models import Guest, ExtraGuest, SiteContent
 from django.utils import timezone
 from datetime import timedelta
 
@@ -41,7 +41,7 @@ def login_phone(request):
                 else:
                     print(f"Redirect: phone not in guest list ({full_phone})")
                     form.add_error(None, "Este número de telefone não está na lista de convidados.")
-                    return render(request, "otp/login_phone.html", {"form": form})
+                    return render(request, "otp/login_phone.html", {"form": form, "site_content": SiteContent.load()})
 
             # Mark in session if this is an extra guest login
             request.session["is_extra_guest_login"] = is_extra
@@ -91,7 +91,7 @@ def login_phone(request):
             request.session["otp_user_id"] = user.id
             return redirect("verify_otp")
 
-    return render(request, "otp/login_phone.html", {"form": form if 'form' in locals() else PhoneForm()})
+    return render(request, "otp/login_phone.html", {"form": form if 'form' in locals() else PhoneForm(), "site_content": SiteContent.load()})
 
 def verify_otp(request):
     if request.method == "POST":

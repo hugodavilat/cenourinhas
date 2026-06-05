@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 
 from assistant.models import ConversationMessage
-from assistant.context import ASSISTANT_CONTEXT_WITH_CONTEXT
+from assistant.context import get_assistant_context_with_context
 from assistant.tools import (
     tool_confirm_presence,
     get_gift_options,
@@ -29,7 +29,7 @@ def call_llama(message, previous_context=[]):
             "messages": [
                 {
                     "role": "system",
-                    "content": ASSISTANT_CONTEXT_WITH_CONTEXT.format(
+                    "content": get_assistant_context_with_context(
                         conversation_context="\n".join(previous_context)
                     ),
                 },
@@ -41,7 +41,7 @@ def call_llama(message, previous_context=[]):
 
 
 def call_gemini(client, message, previous_context=[]):
-    system_prompt = ASSISTANT_CONTEXT_WITH_CONTEXT.format(
+    system_prompt = get_assistant_context_with_context(
         conversation_context="\n".join(previous_context)
     )
     return client.models.generate_content(

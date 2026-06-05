@@ -73,3 +73,35 @@ class ExtraGuest(models.Model):
         return f"{self.name} (Extra of {self.main_guest.name})"
 
 
+class SiteContent(models.Model):
+    """Singleton model for admin-editable site content."""
+
+    otp_page_photo = models.ImageField(upload_to='site_content/', blank=True, null=True)
+    hero_photo = models.ImageField(upload_to='site_content/', blank=True, null=True)
+    hero_text = models.TextField(default="Quase um carnaval fora de época. Estamos preparando uma comemoração inesquecível e contamos com você!")
+
+    cenourinhas_title = models.CharField(max_length=255, default='Por que "Cenourinhas"?')
+    cenourinhas_text = models.TextField(default='Muitos perguntam: "Por que vocês se chamam de Cenourinhas?" Tudo começou com o nosso lema oficial em cada treino de corrida: To Bem Não...')
+    cenourinhas_photo = models.ImageField(upload_to='site_content/', blank=True, null=True)
+
+    sobre_title = models.CharField(max_length=255, default='Sobre o Casal')
+    sobre_subtitle = models.CharField(max_length=255, default='Duas metades que se completam')
+    sobre_text = models.TextField(default='Ela é uma paulista raiz, dona de uma tatuagem do Banespa no braço e apaixonada por prédios antigos e corridas no asfalto. Ele é tricolor doente pelo Fluminense, fã de moqueca, do mar e de correr com o pé na areia.')
+
+    jornada_title = models.CharField(max_length=255, default='Nossa Jornada')
+    jornada_text = models.TextField(default='Um encontro casual no Tinder que virou uma linda história: em pouco tempo já dividíamos o mesmo teto e as aventuras pelo Brasil.')
+    jornada_photo = models.ImageField(upload_to='site_content/', blank=True, null=True)
+
+    assistant_context = models.TextField(blank=True, default='')
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Conteúdo do Site"
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+

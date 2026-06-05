@@ -1,5 +1,5 @@
 from django import forms
-from .models import Presente, Pagamento, Guest, ExtraGuest
+from .models import Presente, Pagamento, Guest, ExtraGuest, SiteContent
 
 class PresenteForm(forms.ModelForm):
     class Meta:
@@ -24,3 +24,22 @@ class ExtraGuestForm(forms.ModelForm):
 class WhatsAppMessageForm(forms.Form):
     message = forms.CharField(widget=forms.Textarea, required=True, label="Mensagem WhatsApp")
     image = forms.ImageField(required=False, label="Imagem (opcional)")
+
+
+class SiteContentForm(forms.ModelForm):
+    class Meta:
+        model = SiteContent
+        fields = [
+            'otp_page_photo', 'hero_photo', 'hero_text',
+            'cenourinhas_title', 'cenourinhas_text', 'cenourinhas_photo',
+            'sobre_title', 'sobre_subtitle', 'sobre_text',
+            'jornada_title', 'jornada_text', 'jornada_photo',
+            'assistant_context',
+        ]
+        widgets = {
+            'hero_text': forms.Textarea(attrs={'rows': 3}),
+            'cenourinhas_text': forms.Textarea(attrs={'rows': 5}),
+            'sobre_text': forms.Textarea(attrs={'rows': 5}),
+            'jornada_text': forms.Textarea(attrs={'rows': 5}),
+            'assistant_context': forms.Textarea(attrs={'rows': 8}),
+        }

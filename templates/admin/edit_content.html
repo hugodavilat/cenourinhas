@@ -1,0 +1,585 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edite o Texto — Admin{% endblock %}
+
+{% block head %}
+<style>
+  .admin-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+  }
+  .admin-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #5a7060;
+    text-decoration: none;
+    margin-bottom: 1rem;
+  }
+  .admin-back:hover { color: #26422a; }
+  .admin-page-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #26422a;
+    margin-bottom: 0.25rem;
+  }
+  .admin-page-subtitle {
+    font-size: 14px;
+    color: #6b826e;
+    margin-bottom: 1.75rem;
+  }
+
+  /* Accordion cards */
+  .ac-card {
+    background: #fff;
+    border: 1px solid rgba(38,66,42,0.1);
+    border-radius: 16px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  .ac-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    gap: 0.75rem;
+  }
+  .ac-header:hover { background: rgba(38,66,42,0.02); }
+  .ac-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .ac-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .ac-icon.green  { background: #eaf3de; color: #3b6d11; }
+  .ac-icon.teal   { background: #e1f5ee; color: #0f6e56; }
+  .ac-icon.coral  { background: #faece7; color: #993c1d; }
+  .ac-icon.pink   { background: #fbeaf0; color: #993556; }
+  .ac-icon.blue   { background: #e6f1fb; color: #185fa5; }
+  .ac-icon.purple { background: #eeedfe; color: #3c3489; }
+  .ac-label { font-size: 15px; font-weight: 600; color: #26422a; }
+  .ac-sublabel { font-size: 12px; color: #6b826e; margin-top: 1px; }
+  .ac-chevron {
+    font-size: 18px;
+    color: #6b826e;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .ac-chevron.open { transform: rotate(180deg); }
+  .ac-body {
+    display: none;
+    padding: 0 1.25rem 1.25rem;
+    border-top: 1px solid rgba(38,66,42,0.06);
+    padding-top: 1.25rem;
+  }
+  .ac-body.open { display: block; }
+
+  /* Fields */
+  .field-group { margin-bottom: 1.1rem; }
+  .field-group:last-child { margin-bottom: 0; }
+  .field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3a6040;
+    margin-bottom: 5px;
+  }
+  .field-hint {
+    font-size: 12px;
+    color: #6b826e;
+    margin-top: 4px;
+  }
+  .char-count {
+    font-size: 12px;
+    color: #6b826e;
+    text-align: right;
+    margin-top: 3px;
+  }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* Form controls — override Django widget defaults */
+  .admin-wrap input[type="text"],
+  .admin-wrap textarea,
+  .admin-wrap select {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 14px;
+    line-height: 1.55;
+    border: 1px solid rgba(38,66,42,0.18);
+    border-radius: 10px;
+    background: #f7f2ea;
+    color: #26422a;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+  }
+  .admin-wrap input[type="text"]:focus,
+  .admin-wrap textarea:focus {
+    outline: none;
+    border-color: #3b6d11;
+    box-shadow: 0 0 0 3px rgba(59,109,17,0.1);
+    background: #fff;
+  }
+  .admin-wrap textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  .admin-wrap textarea.tall { min-height: 160px; }
+
+  /* Image upload block */
+  .image-upload-block {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid rgba(38,66,42,0.07);
+  }
+  .img-thumb {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    border: 1px solid rgba(38,66,42,0.12);
+    background: #f0ebe2;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .img-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+  .img-thumb-placeholder {
+    font-size: 28px;
+    color: #b5c4b8;
+  }
+  .img-upload-controls { flex: 1; min-width: 200px; }
+
+  /* Hide the default file input, show styled label */
+  .admin-wrap input[type="file"] { display: none; }
+  .file-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    border: 1px solid rgba(38,66,42,0.2);
+    border-radius: 10px;
+    background: #f0ebe2;
+    color: #3a6040;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .file-upload-btn:hover { background: #e3ddd4; border-color: rgba(38,66,42,0.3); }
+  .file-name-display {
+    font-size: 12px;
+    color: #6b826e;
+    margin-top: 6px;
+  }
+  .remove-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .remove-row input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #a32d2d;
+    cursor: pointer;
+  }
+  .remove-row label {
+    font-size: 13px;
+    color: #6b826e;
+    cursor: pointer;
+  }
+
+  /* Sticky save bar */
+  .sticky-save {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    background: rgba(255,255,255,0.96);
+    border-top: 1px solid rgba(38,66,42,0.08);
+    padding: 0.9rem 1rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+    backdrop-filter: blur(6px);
+    margin: 1.5rem -1rem -3rem;
+  }
+  .btn-save {
+    padding: 9px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #3b6d11;
+    color: #eaf3de;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-save:hover { background: #27500a; }
+  .btn-cancel {
+    padding: 9px 16px;
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid rgba(38,66,42,0.18);
+    border-radius: 10px;
+    color: #6b826e;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .btn-cancel:hover { background: #f0ebe2; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-2">
+  <div class="admin-wrap">
+
+    <a href="{% url 'wedding_admin' %}" class="admin-back">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+    <h1 class="admin-page-title">Editar conteúdo do site</h1>
+    <p class="admin-page-subtitle">Atualize títulos, descrições e imagens de cada seção</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-3" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <!-- OTP Photo -->
+      <div class="ac-card">
+        <div class="ac-header" onclick="acToggle(this)" role="button" aria-expanded="false">
+          <div class="ac-header-left">
+            <div class="ac-icon blue"><i class="bi bi-phone-vibrate"></i></div>
+            <div>
+              <div class="ac-label">Foto da página OTP</div>
+              <div class="ac-sublabel">Imagem exibida na tela de verificação</div>
+            </div>
+          </div>
+          <i class="bi bi-chevron-down ac-chevron"></i>
+        </div>
+        <div class="ac-body">
+          <div class="image-upload-block" style="margin-top:0; padding-top:0; border-top:none;">
+            <div class="img-thumb" id="thumb_otp">
+              {% if content.otp_page_photo %}
+                <img src="{{ content.otp_page_photo.url }}" alt="OTP preview">
+              {% else %}
+                <img src="{% static 'imgs/jangal.jpg' %}" alt="OTP preview">
+              {% endif %}
+            </div>
+            <div class="img-upload-controls">
+              <span class="field-label">Upload da foto</span>
+              <label class="file-upload-btn" for="{{ form.otp_page_photo.id_for_label }}">
+                <i class="bi bi-upload"></i> Escolher foto
+              </label>
+              {{ form.otp_page_photo }}
+              <div class="file-name-display" id="fname_otp_page_photo">Nenhum arquivo escolhido</div>
+              <div class="remove-row">
+                <input type="checkbox" id="remove_otp_page_photo" name="remove_otp_page_photo" value="1">
+                <label for="remove_otp_page_photo">Remover imagem atual</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <div class="ac-card">
+        <div class="ac-header" onclick="acToggle(this)" role="button" aria-expanded="false">
+          <div class="ac-header-left">
+            <div class="ac-icon teal"><i class="bi bi-brush"></i></div>
+            <div>
+              <div class="ac-label">Seção hero</div>
+              <div class="ac-sublabel">Texto e imagem de abertura</div>
+            </div>
+          </div>
+          <i class="bi bi-chevron-down ac-chevron"></i>
+        </div>
+        <div class="ac-body">
+          <div class="field-group">
+            <label class="field-label" for="{{ form.hero_text.id_for_label }}">Texto de boas-vindas</label>
+            {{ form.hero_text }}
+            <div class="char-count" id="count_hero_text">0 caracteres</div>
+          </div>
+          <div class="image-upload-block">
+            <div class="img-thumb" id="thumb_hero">
+              {% if content.hero_photo %}
+                <img src="{{ content.hero_photo.url }}" alt="Hero preview">
+              {% else %}
+                <span class="img-thumb-placeholder"><i class="bi bi-image"></i></span>
+              {% endif %}
+            </div>
+            <div class="img-upload-controls">
+              <span class="field-label">Upload da imagem</span>
+              <label class="file-upload-btn" for="{{ form.hero_photo.id_for_label }}">
+                <i class="bi bi-upload"></i> Escolher foto
+              </label>
+              {{ form.hero_photo }}
+              <div class="file-name-display" id="fname_hero_photo">Nenhum arquivo escolhido</div>
+              <div class="remove-row">
+                <input type="checkbox" id="remove_hero_photo" name="remove_hero_photo" value="1">
+                <label for="remove_hero_photo">Remover imagem atual</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cenourinhas -->
+      <div class="ac-card">
+        <div class="ac-header" onclick="acToggle(this)" role="button" aria-expanded="false">
+          <div class="ac-header-left">
+            <div class="ac-icon coral"><i class="bi bi-bookmark-star"></i></div>
+            <div>
+              <div class="ac-label">Por que Cenourinhas?</div>
+              <div class="ac-sublabel">Título, texto e imagem da seção</div>
+            </div>
+          </div>
+          <i class="bi bi-chevron-down ac-chevron"></i>
+        </div>
+        <div class="ac-body">
+          <div class="two-col">
+            <div class="field-group">
+              <label class="field-label" for="{{ form.cenourinhas_title.id_for_label }}">Título</label>
+              {{ form.cenourinhas_title }}
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="{{ form.cenourinhas_text.id_for_label }}">Texto</label>
+              {{ form.cenourinhas_text }}
+              <div class="char-count" id="count_cenourinhas_text">0 caracteres</div>
+            </div>
+          </div>
+          <div class="image-upload-block">
+            <div class="img-thumb" id="thumb_cenourinhas">
+              {% if content.cenourinhas_photo %}
+                <img src="{{ content.cenourinhas_photo.url }}" alt="Cenourinhas preview">
+              {% else %}
+                <span class="img-thumb-placeholder"><i class="bi bi-image"></i></span>
+              {% endif %}
+            </div>
+            <div class="img-upload-controls">
+              <span class="field-label">Upload da imagem</span>
+              <label class="file-upload-btn" for="{{ form.cenourinhas_photo.id_for_label }}">
+                <i class="bi bi-upload"></i> Escolher foto
+              </label>
+              {{ form.cenourinhas_photo }}
+              <div class="file-name-display" id="fname_cenourinhas_photo">Nenhum arquivo escolhido</div>
+              <div class="remove-row">
+                <input type="checkbox" id="remove_cenourinhas_photo" name="remove_cenourinhas_photo" value="1">
+                <label for="remove_cenourinhas_photo">Remover imagem atual</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sobre o Casal -->
+      <div class="ac-card">
+        <div class="ac-header" onclick="acToggle(this)" role="button" aria-expanded="false">
+          <div class="ac-header-left">
+            <div class="ac-icon pink"><i class="bi bi-heart-fill"></i></div>
+            <div>
+              <div class="ac-label">Sobre o casal</div>
+              <div class="ac-sublabel">Título, subtítulo e texto</div>
+            </div>
+          </div>
+          <i class="bi bi-chevron-down ac-chevron"></i>
+        </div>
+        <div class="ac-body">
+          <div class="field-group">
+            <label class="field-label" for="{{ form.sobre_title.id_for_label }}">Título</label>
+            {{ form.sobre_title }}
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="{{ form.sobre_subtitle.id_for_label }}">Subtítulo</label>
+            {{ form.sobre_subtitle }}
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="{{ form.sobre_text.id_for_label }}">Texto</label>
+            {{ form.sobre_text }}
+            <div class="char-count" id="count_sobre_text">0 caracteres</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nossa Jornada -->
+      <div class="ac-card">
+        <div class="ac-header" onclick="acToggle(this)" role="button" aria-expanded="false">
+          <div class="ac-header-left">
+            <div class="ac-icon green"><i class="bi bi-flag-fill"></i></div>
+            <div>
+              <div class="ac-label">Nossa jornada</div>
+              <div class="ac-sublabel">Título, texto e foto do percurso</div>
+            </div>
+          </div>
+          <i class="bi bi-chevron-down ac-chevron"></i>
+        </div>
+        <div class="ac-body">
+          <div class="two-col">
+            <div class="field-group">
+              <label class="field-label" for="{{ form.jornada_title.id_for_label }}">Título</label>
+              {{ form.jornada_title }}
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="{{ form.jornada_text.id_for_label }}">Texto</label>
+              {{ form.jornada_text }}
+              <div class="char-count" id="count_jornada_text">0 caracteres</div>
+            </div>
+          </div>
+          <div class="image-upload-block">
+            <div class="img-thumb" id="thumb_jornada">
+              {% if content.jornada_photo %}
+                <img src="{{ content.jornada_photo.url }}" alt="Jornada preview">
+              {% else %}
+                <span class="img-thumb-placeholder"><i class="bi bi-image"></i></span>
+              {% endif %}
+            </div>
+            <div class="img-upload-controls">
+              <span class="field-label">Upload da imagem</span>
+              <label class="file-upload-btn" for="{{ form.jornada_photo.id_for_label }}">
+                <i class="bi bi-upload"></i> Escolher foto
+              </label>
+              {{ form.jornada_photo }}
+              <div class="file-name-display" id="fname_jornada_photo">Nenhum arquivo escolhido</div>
+              <div class="remove-row">
+                <input type="checkbox" id="remove_jornada_photo" name="remove_jornada_photo" value="1">
+                <label for="remove_jornada_photo">Remover imagem atual</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assistente -->
+      <div class="ac-card">
+        <div class="ac-header" onclick="acToggle(this)" role="button" aria-expanded="false">
+          <div class="ac-header-left">
+            <div class="ac-icon purple"><i class="bi bi-robot"></i></div>
+            <div>
+              <div class="ac-label">Contexto do assistente</div>
+              <div class="ac-sublabel">Instruções para o assistente virtual</div>
+            </div>
+          </div>
+          <i class="bi bi-chevron-down ac-chevron"></i>
+        </div>
+        <div class="ac-body">
+          <div class="field-group">
+            <label class="field-label" for="{{ form.assistant_context.id_for_label }}">Texto do assistente</label>
+            {{ form.assistant_context }}
+            <div class="char-count" id="count_assistant_context">0 caracteres</div>
+            <div class="field-hint">Define o tom, informações e comportamento do assistente no site.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sticky-save">
+        <a href="{% url 'wedding_admin' %}" class="btn-cancel">Cancelar</a>
+        <button type="submit" class="btn-save">
+          <i class="bi bi-floppy me-1"></i> Salvar alterações
+        </button>
+      </div>
+
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* ── Accordion ── */
+  function acToggle(header) {
+    const body = header.nextElementSibling;
+    const chevron = header.querySelector('.ac-chevron');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chevron.classList.toggle('open', !isOpen);
+    header.setAttribute('aria-expanded', !isOpen);
+  }
+
+  /* ── Character counters ── */
+  const COUNTED_FIELDS = [
+    'hero_text',
+    'cenourinhas_text',
+    'sobre_text',
+    'jornada_text',
+    'assistant_context',
+  ];
+  COUNTED_FIELDS.forEach(name => {
+    const el = document.getElementById('id_' + name);
+    const counter = document.getElementById('count_' + name);
+    if (!el || !counter) return;
+    const update = () => { counter.textContent = el.value.length + ' caracteres'; };
+    el.addEventListener('input', update);
+    update();
+  });
+
+  /* ── File input: show filename + live thumbnail preview ── */
+  const FILE_FIELDS = [
+    { id: 'id_otp_page_photo',      thumb: 'thumb_otp',          fname: 'fname_otp_page_photo' },
+    { id: 'id_hero_photo',          thumb: 'thumb_hero',         fname: 'fname_hero_photo' },
+    { id: 'id_cenourinhas_photo',   thumb: 'thumb_cenourinhas',  fname: 'fname_cenourinhas_photo' },
+    { id: 'id_jornada_photo',       thumb: 'thumb_jornada',      fname: 'fname_jornada_photo' },
+  ];
+  FILE_FIELDS.forEach(cfg => {
+    const input  = document.getElementById(cfg.id);
+    const thumb  = document.getElementById(cfg.thumb);
+    const fname  = document.getElementById(cfg.fname);
+    if (!input) return;
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+      if (fname) fname.textContent = file.name;
+      if (thumb) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          thumb.innerHTML = '<img src="' + e.target.result + '" alt="Preview">';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  });
+
+  /* ── Add .tall class to large textareas via Django widget attrs ── */
+  document.querySelectorAll('textarea').forEach(ta => {
+    if (ta.rows && ta.rows >= 5) ta.classList.add('tall');
+  });
+</script>
+{% endblock %}
