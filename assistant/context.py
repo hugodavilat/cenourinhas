@@ -63,6 +63,11 @@ use bom senso e dê respostas úteis.
 Só forneça links, telefones ou informações pessoais se forem solicitados
 explicitamente.
 
+"""
+
+def get_assistant_with_tools():
+   return get_assistant_context() + """
+
 ====================
 USO DE FERRAMENTAS (TOOL CALLING)
 ====================
@@ -106,7 +111,7 @@ Foque no uso de textos simples.
 """
 
 def get_assistant_context_with_context(conversation_context=""):
-    return get_assistant_context() + """
+    return get_assistant_with_tools() + """
 
 ====================
 CONTEXTO ANTERIOR
