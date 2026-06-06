@@ -131,7 +131,7 @@ def get_gift_options():
 # ==========================================================
 
 
-def tool_start_gift_payment(presente_id: int):
+def tool_start_gift_payment(presente_id: int, message: str = None, guest_phone: str = None):
     """
     Cria um pagamento associado a um presente específico.
 
@@ -142,6 +142,8 @@ def tool_start_gift_payment(presente_id: int):
 
     Entrada:
       presente_id: inteiro correspondente ao ID do presente
+      message: string opcional com mensagem do convidado para o casal
+      guest_phone: string opcional com número de telefone do convidado para vincular ao pagamento
 
     Saída:
       {
@@ -166,6 +168,19 @@ def tool_start_gift_payment(presente_id: int):
             presente=presente,
             valor=presente.valor,
         )
+
+        # If guest_phone provided, try to associate with a Guest
+        if guest_phone:
+            guest = Guest.objects.filter(phone_number=guest_phone).first()
+            if guest:
+                pagamento.guest = guest
+                pagamento.nome_pagador = guest.name
+
+        # Save optional message
+        if message:
+            pagamento.message = message
+
+        pagamento.save()
 
         preference_data = {
             "items": [
@@ -206,6 +221,98 @@ def tool_start_gift_payment(presente_id: int):
 
 
 # ==========================================================
+# 4) INICIAR PAGAMENTO DE VALOR PERSONALIZADO
+# ==========================================================
+
+
+def tool_start_custom_gift_payment(valor: float, message: str = None, guest_phone: str = None):
+    """
+    Cria um pagamento para um valor personalizado quando o usuário quer dar
+    um valor específico sem escolher um presente por ID.
+
+    Use esta ferramenta quando o usuário disser que quer dar um valor específico,
+    mesmo sem ID.
+
+    Exemplos de frases:
+    • "Quero dar 200 reais."
+    • "Quero ajudar com cem."
+    • "Posso fazer um presente de 75?"
+
+    Entrada:
+      valor: número (float, decimal or int) representando o valor em BRL
+      message: string opcional com mensagem do convidado para o casal
+      guest_phone: string opcional com número de telefone do convidado para vincular ao pagamento
+
+    Saída:
+      {
+        "success": bool,
+        "message": str,
+        "valor": str,
+        "payment_url": str,
+      }
+    """
+
+    try:
+        # Criar um presente temporário para associar ao pagamento
+        nome = f"Contribuição - R$ {valor:.2f}"
+        presente = Presente.objects.create(nome=nome, descricao="Contribuição personalizada", valor=valor)
+
+        pagamento = Pagamento.objects.create(
+            presente=presente,
+            valor=presente.valor,
+        )
+
+        # Associate guest if phone provided
+        if guest_phone:
+            guest = Guest.objects.filter(phone_number=guest_phone).first()
+            if guest:
+                pagamento.guest = guest
+                pagamento.nome_pagador = guest.name
+
+        # Save optional message
+        if message:
+            pagamento.message = message
+
+        pagamento.save()
+
+        preference_data = {
+            "items": [
+                {
+                    "title": presente.nome,
+                    "quantity": 1,
+                    "currency_id": "BRL",
+                    "unit_price": float(presente.valor),
+                }
+            ],
+            "external_reference": str(pagamento.id),
+            "back_urls": {
+                "success": f"{settings.SITE_URL}/pagamento/sucesso/",
+                "failure": f"{settings.SITE_URL}/pagamento/erro/",
+                "pending": f"{settings.SITE_URL}/pagamento/pendente/",
+            },
+            "notification_url": f"{settings.SITE_URL}/webhook/mercadopago/",
+        }
+
+        sdk = get_sdk()
+        preference = sdk.preference().create(preference_data)
+
+        init_point = preference["response"].get("init_point")
+
+        return {
+            "success": True,
+            "valor": str(presente.valor),
+            "payment_url": init_point,
+            "message": f"Aqui está o link seguro para contribuir com R$ {presente.valor}.",
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Erro ao criar link de pagamento personalizado: {e}",
+        }
+
+
+# ==========================================================
 # REGISTRO DE TOOLS
 # ==========================================================
 
@@ -213,4 +320,5 @@ TOOLS = {
     "confirm_presence": tool_confirm_presence,
     "get_gift_options": get_gift_options,
     "start_gift_payment": tool_start_gift_payment,
+    "start_custom_gift_payment": tool_start_custom_gift_payment,
 }

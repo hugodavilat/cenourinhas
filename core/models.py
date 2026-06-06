@@ -27,6 +27,10 @@ class Pagamento(models.Model):
 
     presente = models.ForeignKey(Presente, on_delete=models.CASCADE, related_name='pagamentos')
     valor = models.DecimalField(max_digits=10, decimal_places=2)
+    # Link to the guest who initiated the payment (optional)
+    guest = models.ForeignKey('Guest', on_delete=models.SET_NULL, null=True, blank=True, related_name='pagamentos')
+    # Optional message provided by the guest when giving the present
+    message = models.TextField(blank=True, null=True)
     mp_payment_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     status = models.CharField(max_length=50, default='pendente', choices=STATUS_CHOICES)
     nome_pagador = models.CharField(max_length=255, blank=True, null=True)

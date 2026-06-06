@@ -13,6 +13,7 @@ from assistant.tools import (
     tool_confirm_presence,
     get_gift_options,
     tool_start_gift_payment,
+    tool_start_custom_gift_payment,
     TOOLS,
 )
 
@@ -89,8 +90,23 @@ def call_gemini(client, message, previous_context=[]):
                                 type="object",
                                 properties={
                                     "presente_id": genai.types.Schema(type="integer"),
+                                    "message": genai.types.Schema(type="string"),
+                                    "guest_phone": genai.types.Schema(type="string"),
                                 },
                                 required=["presente_id"],
+                            ),
+                        ),
+                        genai.types.FunctionDeclaration(
+                            name="start_custom_gift_payment",
+                            description=tool_start_custom_gift_payment.__doc__,
+                            parameters=genai.types.Schema(
+                                type="object",
+                                properties={
+                                    "valor": genai.types.Schema(type="number"),
+                                    "message": genai.types.Schema(type="string"),
+                                    "guest_phone": genai.types.Schema(type="string"),
+                                },
+                                required=["valor"],
                             ),
                         ),
                     ]

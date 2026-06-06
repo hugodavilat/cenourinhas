@@ -6,7 +6,8 @@
         <th class="py-3">Valor</th>
         <th class="py-3">Status</th>
         <th class="py-3">Pagador</th>
-        <th class="py-3">Email</th>
+        <th class="py-3">Telefone</th>
+        <th class="py-3">Mensagem</th>
         <th class="py-3">Criado em</th>
         <th class="py-3 text-end">Ações</th>
       </tr>
@@ -28,7 +29,8 @@
           {% endif %}
         </td>
         <td class="py-3 text-muted">{{ pagamento.nome_pagador|default:"-" }}</td>
-        <td class="py-3 text-muted">{{ pagamento.email_pagador|default:"-" }}</td>
+        <td class="py-3 text-muted">{% if pagamento.guest %}{{ pagamento.guest.phone_number|default:"-" }}{% else %}-{% endif %}</td>
+        <td class="py-3 text-muted">{{ pagamento.message|default:"-" }}</td>
         <td class="py-3 text-muted">{{ pagamento.criado_em|date:'d/m/Y H:i' }}</td>
         <td class="py-3 text-end">
           <div class="d-inline-flex gap-2">

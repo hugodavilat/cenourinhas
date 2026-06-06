@@ -149,3 +149,6 @@ WHATSAPP_SERVER_URL = os.getenv("WHATSAPP_SERVER_URL", "http://localhost:8081")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 OPEN_ROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY", "")
+
+# Comma-separated list of admin WhatsApp phone numbers (e.g. +5511999999999,+5511988888888)
+WEDDING_ADMINS_WHATSAPP = os.getenv('ADMINS', '')

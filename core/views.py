@@ -157,6 +157,26 @@ def iniciar_pagamento(request, presente_id):
         valor=presente.valor
     )
 
+    # If guest is logged in, associate the payment and optionally store a message
+    try:
+        user_id = request.session.get("otp_user_id")
+        if user_id:
+            from .models import Guest
+            try:
+                guest = Guest.objects.get(id=user_id)
+                pagamento.guest = guest
+                pagamento.nome_pagador = guest.name
+            except Guest.DoesNotExist:
+                guest = None
+        # Accept an optional message param from the website or AI tools
+        message = request.POST.get('message') or request.GET.get('message')
+        if message:
+            pagamento.message = message
+        pagamento.save()
+    except Exception:
+        # Do not interrupt the payment flow for non-critical issues
+        pass
+
     # Preparar dados da preference
     preference_data = {
         "items": [
@@ -229,6 +249,14 @@ def webhook_mercadopago(request):
                 external_reference = info.get("external_reference")
                 status = info.get("status")
 
+                payer = info.get('payer', {}) or {}
+                payer_email = payer.get('email')
+                payer_name = None
+                if payer.get('first_name') or payer.get('last_name'):
+                    payer_name = (payer.get('first_name','') + ' ' + payer.get('last_name','')).strip()
+                elif payer.get('nickname'):
+                    payer_name = payer.get('nickname')
+
                 # Mapear status do Mercado Pago para nosso status
                 status_map = {
                     'pending': 'pendente',
@@ -249,8 +277,37 @@ def webhook_mercadopago(request):
                     try:
                         pagamento = Pagamento.objects.get(id=external_reference)
                         pagamento.mp_payment_id = payment_id
+                        # populate payer info when available
+                        if payer_email:
+                            pagamento.email_pagador = payer_email
+                        if payer_name:
+                            pagamento.nome_pagador = pagamento.nome_pagador or payer_name
+                        previous_status = pagamento.status
                         pagamento.status = novo_status
                         pagamento.save()
+
+                        # If payment just became approved, notify admins via WhatsApp
+                        try:
+                            if previous_status != 'aprovado' and novo_status == 'aprovado':
+                                admin_numbers = getattr(settings, 'WEDDING_ADMINS_WHATSAPP', '') or ''
+                                admin_list = [n.strip() for n in admin_numbers.split(',') if n.strip()]
+                                # Build message with details
+                                present_name = pagamento.presente.nome if pagamento.presente else 'Presente'
+                                amount = f"R$ {pagamento.valor:.2f}" if pagamento.valor is not None else '-' 
+                                guest_name = pagamento.nome_pagador or (pagamento.guest.name if pagamento.guest else '-')
+                                guest_phone = pagamento.guest.phone_number if pagamento.guest else '-'
+                                guest_msg = pagamento.message or '-'
+                                text = (
+                                    f"Novo presente recebido!\nPresente: {present_name}\nValor: {amount}\nPor: {guest_name} ({guest_phone})\nMensagem: {guest_msg}"
+                                )
+                                for admin_phone in admin_list:
+                                    try:
+                                        send_whatsapp_message(admin_phone, text)
+                                    except Exception:
+                                        # swallow errors to keep webhook resilient
+                                        pass
+                        except Exception as exc:
+                            print(f"Erro ao notificar admins via WhatsApp: {str(exc)}")
                     except Pagamento.DoesNotExist:
                         pass
             except Exception as e:
@@ -263,7 +320,6 @@ def webhook_mercadopago(request):
         return HttpResponse("OK", status=200)
 
 
-@guest_required
 def pagamento_sucesso(request):
     """Página de sucesso após pagamento"""
     payment_id = request.GET.get('payment_id')
@@ -275,7 +331,6 @@ def pagamento_sucesso(request):
     return render(request, 'pagamento/sucesso.html', context)
 
 
-@guest_required
 def pagamento_erro(request):
     """Página de erro após pagamento"""
     context = {
@@ -285,7 +340,6 @@ def pagamento_erro(request):
     return render(request, 'pagamento/erro.html', context)
 
 
-@guest_required
 def pagamento_pendente(request):
     """Página de pagamento pendente"""
     context = {

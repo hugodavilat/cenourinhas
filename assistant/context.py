@@ -85,11 +85,13 @@ Ferramentas disponíveis:
    Use quando o usuário pedir para ver lista de presentes, opções de presentes,
    ou perguntar "o que posso dar?", "quais presentes têm?", etc.
 
-3. **start_gift_payment(presente_id: number)**  
+3. **start_gift_payment(presente_id: number, message: str = None, guest_phone: str = None)**  
    Use quando o usuário escolher um presente ESPECÍFICO da lista com ID conhecido.
+   Pergunte se ele quer mandar uma mensagem para o casal.
 
-4. **start_custom_gift_payment(valor: number)**  
-   Use quando o usuário disser que quer dar um valor específico, mesmo sem ID.  
+4. **start_custom_gift_payment(valor: number, message: str = None, guest_phone: str = None)**  
+   Use quando o usuário disser que quer dar um valor específico, mesmo sem ID.
+   Pergunte se ele quer mandar uma mensagem para o casal.  
    Exemplos de frases:  
    • "Quero dar 200 reais."  
    • "Quero ajudar com cem."  
@@ -122,7 +124,7 @@ Use o histórico abaixo para manter continuidade da conversa:
 {conversation_context}
 
 ====================
-FIM DO CONTEXTO
+FIM DO CONTEXTO ANTERIOR
 ====================
 """.format(conversation_context=conversation_context)
 
