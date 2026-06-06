@@ -2,6 +2,7 @@
 
 from core.models import Guest, ExtraGuest, Presente, Pagamento
 from core.mercadopago_sdk import get_sdk
+from core.views import notificar_present
 from django.conf import settings
 
 
@@ -204,6 +205,7 @@ def tool_start_gift_payment(presente_id: int, message: str = None, guest_phone: 
         preference = sdk.preference().create(preference_data)
 
         init_point = preference["response"].get("init_point")
+        notificar_present(pagamento)  # Notify admins of new present/payment initiation
 
         return {
             "success": True,
@@ -297,6 +299,7 @@ def tool_start_custom_gift_payment(valor: float, message: str = None, guest_phon
         preference = sdk.preference().create(preference_data)
 
         init_point = preference["response"].get("init_point")
+        notificar_present(pagamento)  # Notify admins of new present/payment initiation
 
         return {
             "success": True,
