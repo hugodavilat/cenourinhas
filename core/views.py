@@ -137,6 +137,26 @@ def presente(request):
     """Redirect to presents section on single home page."""
     return redirect(reverse('home') + '#presentes')
 
+def notificar_present(pagamento: Pagamento):
+    admin_numbers = getattr(settings, 'WEDDING_ADMINS_WHATSAPP', '') or ''
+    admin_list = [n.strip() for n in admin_numbers.split(',') if n.strip()]
+    # Build message with details
+    present_name = pagamento.presente.nome if pagamento.presente else 'Presente'
+    amount = f"R$ {pagamento.valor:.2f}" if pagamento.valor is not None else '-' 
+    guest_name = pagamento.nome_pagador or (pagamento.guest.name if pagamento.guest else '-')
+    guest_phone = pagamento.guest.phone_number if pagamento.guest else '-'
+    guest_msg = pagamento.message or '-'
+    text = (
+        f"Novo presente recebido (ou iniciado)!\nPresente: {present_name}\nValor: {amount}\nPor: {guest_name} ({guest_phone})\nMensagem: {guest_msg}"
+        f"\nStatus atual: {pagamento.status}"
+        f"\nCheque na conta do MercadoPago para confirmação"
+    )
+    for admin_phone in admin_list:
+        try:
+            send_whatsapp_message(admin_phone, text)
+        except Exception:
+            # swallow errors to keep webhook resilient
+            pass
 
 @guest_required
 def iniciar_pagamento(request, presente_id):
@@ -205,6 +225,10 @@ def iniciar_pagamento(request, presente_id):
         if preference.get("status") == 201 and preference.get("response"):
             init_point = preference["response"].get("init_point")
             if init_point:
+                try:
+                    notificar_present(pagamento)  # Notify admins of new present
+                except Exception as exc:
+                    print(f"Erro ao notificar admins: {str(exc)}")
                 return redirect(init_point)
             else:
                 return render(request, 'pagamento/erro.html', {
@@ -289,23 +313,7 @@ def webhook_mercadopago(request):
                         # If payment just became approved, notify admins via WhatsApp
                         try:
                             if previous_status != 'aprovado' and novo_status == 'aprovado':
-                                admin_numbers = getattr(settings, 'WEDDING_ADMINS_WHATSAPP', '') or ''
-                                admin_list = [n.strip() for n in admin_numbers.split(',') if n.strip()]
-                                # Build message with details
-                                present_name = pagamento.presente.nome if pagamento.presente else 'Presente'
-                                amount = f"R$ {pagamento.valor:.2f}" if pagamento.valor is not None else '-' 
-                                guest_name = pagamento.nome_pagador or (pagamento.guest.name if pagamento.guest else '-')
-                                guest_phone = pagamento.guest.phone_number if pagamento.guest else '-'
-                                guest_msg = pagamento.message or '-'
-                                text = (
-                                    f"Novo presente recebido!\nPresente: {present_name}\nValor: {amount}\nPor: {guest_name} ({guest_phone})\nMensagem: {guest_msg}"
-                                )
-                                for admin_phone in admin_list:
-                                    try:
-                                        send_whatsapp_message(admin_phone, text)
-                                    except Exception:
-                                        # swallow errors to keep webhook resilient
-                                        pass
+                                notificar_present(pagamento)
                         except Exception as exc:
                             print(f"Erro ao notificar admins via WhatsApp: {str(exc)}")
                     except Pagamento.DoesNotExist:
