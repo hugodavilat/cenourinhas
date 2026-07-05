@@ -25,7 +25,7 @@ class Pagamento(models.Model):
         ('cancelado', 'Cancelado'),
     ]
 
-    presente = models.ForeignKey(Presente, on_delete=models.CASCADE, related_name='pagamentos')
+    presente = models.ForeignKey(Presente, on_delete=models.CASCADE, related_name='pagamentos', null=True, blank=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     # Link to the guest who initiated the payment (optional)
     guest = models.ForeignKey('Guest', on_delete=models.SET_NULL, null=True, blank=True, related_name='pagamentos')
@@ -39,7 +39,9 @@ class Pagamento(models.Model):
     atualizado_em = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Pagamento {self.id} - {self.presente.nome} - {self.status}"
+        nome_do_present = self.presente.nome if self.presente else "Contribuição Personalizada"
+        id_do_pagamento = self.id if self.id else "Personalizado"
+        return f"Pagamento {id_do_pagamento} - {nome_do_present} - {self.status}"
 
     class Meta:
         verbose_name = "Pagamento"

@@ -255,11 +255,11 @@ def tool_start_custom_gift_payment(valor: float, message: str = None, guest_phon
     try:
         # Criar um presente temporário para associar ao pagamento
         nome = f"Contribuição - R$ {valor:.2f}"
-        presente = Presente.objects.create(nome=nome, descricao="Contribuição personalizada", valor=valor)
+        # presente = Presente.objects.create(nome=nome, descricao="Contribuição personalizada", valor=valor)
 
         pagamento = Pagamento.objects.create(
-            presente=presente,
-            valor=presente.valor,
+            presente=None,
+            valor=valor,
         )
 
         # Associate guest if phone provided
@@ -278,10 +278,10 @@ def tool_start_custom_gift_payment(valor: float, message: str = None, guest_phon
         preference_data = {
             "items": [
                 {
-                    "title": presente.nome,
+                    "title": nome,
                     "quantity": 1,
                     "currency_id": "BRL",
-                    "unit_price": float(presente.valor),
+                    "unit_price": float(valor),
                 }
             ],
             "external_reference": str(pagamento.id),
@@ -300,9 +300,9 @@ def tool_start_custom_gift_payment(valor: float, message: str = None, guest_phon
 
         return {
             "success": True,
-            "valor": str(presente.valor),
+            "valor": str(valor),
             "payment_url": init_point,
-            "message": f"Aqui está o link seguro para contribuir com R$ {presente.valor}.",
+            "message": f"Aqui está o link seguro para contribuir com R$ {valor}.",
         }
 
     except Exception as e:
