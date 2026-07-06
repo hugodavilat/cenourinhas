@@ -4,7 +4,8 @@
       <tr style="border-bottom: 2.5px solid rgba(38,66,42,0.15); color: var(--green); font-family: 'Jost', sans-serif; font-weight: 600; text-transform: uppercase; font-size: 0.84rem; letter-spacing: 0.08em;">
         <th class="py-3">Nome Convidado</th>
         <th class="py-3">Telefone</th>
-        <th class="py-3">Presença</th>
+        <th class="py-3">10/out</th>
+        <th class="py-3">11/out</th>
         <th class="py-3">WhatsApp Enviado</th>
         <th class="py-3">Chave de Sessão</th>
         <th class="py-3">Ativo Até</th>
@@ -16,13 +17,24 @@
       <tr style="border-bottom: 1px solid rgba(38,66,42,0.06); background: white;">
         <td class="py-3 fw-medium" style="color: var(--green);">{{ guest.name }}</td>
         <td class="py-3 text-muted">{{ guest.phone_number|default:"-" }}</td>
-        <td class="py-3">
-          {% if guest.is_confirmed %}
-            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fs-7"><i class="bi bi-check-circle-fill me-1"></i>Confirmado</span>
-          {% elif guest.is_rejected %}
-            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1.5 rounded-pill fs-7"><i class="bi bi-x-circle-fill me-1"></i>Rejeitado</span>
-          {% elif guest.not_answered %}
-            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-3 py-1.5 rounded-pill fs-7"><i class="bi bi-question-circle-fill me-1"></i>Pendente</span>
+        <td class="py-3 text-center">
+          {% if guest.day1_status == 'confirmed' %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fs-7">Confirmado</span>
+          {% elif guest.day1_status == 'rejected' %}
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1.5 rounded-pill fs-7">Rejeitado</span>
+          {% elif guest.day1_status == 'pending' %}
+            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-3 py-1.5 rounded-pill fs-7">Pendente</span>
+          {% else %}
+            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-1.5 rounded-pill fs-7">-</span>
+          {% endif %}
+        </td>
+        <td class="py-3 text-center">
+          {% if guest.day2_status == 'confirmed' %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fs-7">Confirmado</span>
+          {% elif guest.day2_status == 'rejected' %}
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1.5 rounded-pill fs-7">Rejeitado</span>
+          {% elif guest.day2_status == 'pending' %}
+            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-3 py-1.5 rounded-pill fs-7">Pendente</span>
           {% else %}
             <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-1.5 rounded-pill fs-7">-</span>
           {% endif %}
@@ -58,13 +70,24 @@
           <span class="text-muted opacity-50 me-1">↳</span> {{ extra.name }}
         </td>
         <td class="py-2.5 text-muted" style="font-size:0.95rem;">{{ extra.phone_number|default:"-" }}</td>
-        <td class="py-2.5">
-          {% if extra.is_confirmed %}
-            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;"><i class="bi bi-check me-1"></i>Confirmado</span>
-          {% elif extra.is_rejected %}
-            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;"><i class="bi bi-x me-1"></i>Rejeitado</span>
-          {% elif extra.not_answered %}
-            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;"><i class="bi bi-question me-1"></i>Pendente</span>
+        <td class="py-2.5 text-center">
+          {% if extra.day1_status == 'confirmed' %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">Confirmado</span>
+          {% elif extra.day1_status == 'rejected' %}
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">Rejeitado</span>
+          {% elif extra.day1_status == 'pending' %}
+            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">Pendente</span>
+          {% else %}
+            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">-</span>
+          {% endif %}
+        </td>
+        <td class="py-2.5 text-center">
+          {% if extra.day2_status == 'confirmed' %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">Confirmado</span>
+          {% elif extra.day2_status == 'rejected' %}
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">Rejeitado</span>
+          {% elif extra.day2_status == 'pending' %}
+            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">Pendente</span>
           {% else %}
             <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-1.5 rounded-pill fs-8" style="font-size:0.8rem;">-</span>
           {% endif %}

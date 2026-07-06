@@ -69,9 +69,10 @@ def call_gemini(client, message, previous_context=[]):
                                 type="object",
                                 properties={
                                     "phone": genai.types.Schema(type="string"),
-                                    "confirm": genai.types.Schema(type="boolean"),
+                                    "day1": genai.types.Schema(type="boolean"),
+                                    "day2": genai.types.Schema(type="boolean"),
                                 },
-                                required=["phone", "confirm"],
+                                required=["phone", "day1", "day2"],
                             ),
                         ),
                         genai.types.FunctionDeclaration(

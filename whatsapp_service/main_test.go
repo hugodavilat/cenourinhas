@@ -60,10 +60,11 @@ func TestGetAlternativePhone_Examples(t *testing.T) {
 	cases := []struct {
 		in, want string
 	}{
-		{"+5531998765432", "+553198765432"},
-		{"+553188765432", "+553188765432"},
-		{"+14155552671", "+14155552671"},
-		{"+5512345678", "+5512345678"},
+		{"+5531998765432", "553198765432"},
+		{"+553188765432", "5531988765432"},
+		{"+552796422010", "5527996422010"},
+		{"+14155552671", "14155552671"},
+		{"+5512345678", "5512345678"},
 	}
 	for _, c := range cases {
 		got := getAlternativePhone(c.in)
@@ -100,22 +101,27 @@ func TestAlternativePhoneFormat(t *testing.T) {
 		{
 			name:     "With leading 9 after area code",
 			input:    "+5531998765432",
-			expected: "+553198765432",
+			expected: "553198765432",
 		},
 		{
 			name:     "No leading 9 after area code",
 			input:    "+553188765432",
-			expected: "+553188765432",
+			expected: "5531988765432",
+		},
+		{
+			name:     "Brazilian 12-digit mobile without extra 9",
+			input:    "+552796422010",
+			expected: "5527996422010",
 		},
 		{
 			name:     "Not Brazilian number",
 			input:    "+14155552671",
-			expected: "+14155552671",
+			expected: "14155552671",
 		},
 		{
 			name:     "Short number",
 			input:    "+5512345678",
-			expected: "+5512345678",
+			expected: "5512345678",
 		},
 	}
 

@@ -10,9 +10,16 @@ from django.conf import settings
 # ==========================================================
 
 
-def tool_confirm_presence(phone: str, confirm: bool):
+def tool_confirm_presence(phone: str, day1: bool = True, day2: bool = True):
     """
     Confirma ou rejeita a presença do convidado cujo telefone corresponde ao valor fornecido.
+    Essa ferramenta confirma ou rejeita presença de todos os convidados extras. Caso queira confirmar de apenas um convidado, utilize o site https://cenourinhas.com.br.
+
+    day1 e day2 são booleanos que indicam se a confirmação/rejeição deve ser aplicada ao dia 1 (10/10) e/ou ao dia 2 (11/10). Se ambos forem True, aplica-se a ambos os dias.
+    Confirmar ou negar os dois dias é o comportamento padrão se day1 e day2 forem omitidos (ou ambos True).
+    
+    day1 é o pré casamento, 10 de outubro de 2026. Entenda qualquer referencia a dia 1, dia 10 ou pré.
+    day2 é o casamento, 11 de outubro de 2026. Entenda qualquer referencia a dia 2, dia 11 ou casamento ou festa principal.
 
     Use esta ferramenta quando o usuário disser que deseja:
     - confirmar presença
@@ -31,14 +38,15 @@ def tool_confirm_presence(phone: str, confirm: bool):
 
     Entrada:
       phone: número de telefone completo (string)
-      confirm: booleano (True = confirmar, False = rejeitar)
+      day1: booleano (True = confirmar dia 10, False = rejeitar)
+      day2: booleano (True = confirmar dia 11, False = rejeitar)
 
     Retorno:
       {
         "success": bool,
-        "message": str,
-        "guest_name": str,
-        "confirmed": bool,
+        "day1": bool,
+        "day2": bool,
+        "message": str
       }
     """
 
@@ -49,25 +57,28 @@ def tool_confirm_presence(phone: str, confirm: bool):
     if not guest:
         extra = ExtraGuest.objects.filter(phone_number=phone).first()
         if extra:
-            return tool_confirm_presence(extra.main_guest.phone_number, confirm)
+            return tool_confirm_presence(extra.main_guest.phone_number, day1=day1, day2=day2)
 
         return {
             "success": False,
             "message": "Não encontrei seu número na lista de convidados.",
         }
 
-    # Atualizar convidado principal
-    guest.is_confirmed = confirm
-    guest.is_rejected = not confirm
-    guest.not_answered = False
+    # Helper to update per-person statuses
+    def _set_status(person):
+        setattr(person, 'day1_status', 'confirmed' if day1 else 'rejected')
+        setattr(person, 'day2_status', 'confirmed' if day2 else 'rejected')
+
+    # Update guest per-day fields
+    print(f"Updating guest {guest.name} statuses: day1={day1}, day2={day2}")
+    _set_status(guest)
     guest.save()
 
     # Atualizar convidados extras do mesmo grupo
     extras = ExtraGuest.objects.filter(main_guest=guest)
     for eg in extras:
-        eg.is_confirmed = confirm
-        eg.is_rejected = not confirm
-        eg.not_answered = False
+        print(f"Updating extra guest {eg.name} statuses: day1={day1}, day2={day2}")
+        _set_status(eg)
         eg.save()
 
     # Criar lista de nomes
@@ -75,15 +86,31 @@ def tool_confirm_presence(phone: str, confirm: bool):
     formatted_names = "\n- " + "\n- ".join(names) if names else ""
 
     # Mensagem final humanizada
-    if confirm:
-        msg = f"Presença confirmada para:{formatted_names}"
-    else:
-        msg = f"Registramos que não comparecerão:{formatted_names}"
+    yes_text = ''
+    if day1:
+        yes_text = ' no dia 10 de outubro'
+    elif day2:
+        yes_text = ' no dia 11 de outubro'
+    elif day1 and day2:
+        yes_text = ' nos dias 10 e 11 de outubro'
+    no_text = ''
+    if not day1:
+        no_text = ' no dia 10 de outubro'
+    elif not day2:
+        no_text = ' no dia 11 de outubro'
+    elif not day1 and not day2:
+        no_text = ' nos dias 10 e 11 de outubro'
+    
+    msg = ""
+    if yes_text:
+        msg += f"Presença confirmada{yes_text} para:{formatted_names}"
+    if no_text:
+        msg += f"Presença rejeitada{no_text} para:{formatted_names}"
 
     return {
         "success": True,
-        "guest_name": guest.name,
-        "confirmed": confirm,
+        "day1": day1,
+        "day2": day2,
         "message": msg,
     }
 

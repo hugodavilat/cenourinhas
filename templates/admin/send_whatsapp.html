@@ -65,6 +65,8 @@
                 
                 <form method="post" enctype="multipart/form-data" id="mainForm">
                     {% csrf_token %}
+                    <input type="hidden" name="status" value="{{ selected_status }}">
+                    <input type="hidden" name="day" value="{{ selected_day|default:'all' }}">
                     
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-uppercase small tracking-wide" style="color: var(--green-mid); font-size: 0.82rem; display: block; margin-bottom: 0.5rem;">Mensagem</label>
@@ -72,8 +74,8 @@
                     </div>
                     
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-uppercase small tracking-wide" style="color: var(--green-mid); font-size: 0.82rem; display: block; margin-bottom: 0.5rem;">Imagem (Opcional)</label>
-                        <input type="file" name="image" class="form-control-custom">
+                        <label class="form-label fw-semibold text-uppercase small tracking-wide" style="color: var(--green-mid); font-size: 0.82rem; display: block; margin-bottom: 0.5rem;">Anexo (Opcional)</label>
+                        <input type="file" name="image" class="form-control-custom" accept=".jpg,.jpeg,.png,.pdf">
                     </div>
 
                     <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill text-uppercase fw-semibold" style="background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%); border: none; font-size: 0.95rem; letter-spacing: 0.08em; box-shadow: 0 4px 18px rgba(38,66,42,0.25);">
@@ -96,6 +98,11 @@
                                 <option value="not_answered" {% if selected_status == 'not_answered' %}selected{% endif %}>Pendentes</option>
                                 <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Recusados</option>
                             </select>
+                            <select name="day" class="form-select form-select-sm form-control-custom" style="padding: 0.4rem 2rem 0.4rem 1rem; font-size: 0.88rem;" onchange="this.form.submit()">
+                                <option value="all" {% if selected_day == 'all' %}selected{% endif %}>Todos Dias</option>
+                                <option value="day1" {% if selected_day == 'day1' %}selected{% endif %}>10 de outubro</option>
+                                <option value="day2" {% if selected_day == 'day2' %}selected{% endif %}>11 de outubro</option>
+                            </select>
                         </form>
                     </div>
                 </div>
@@ -113,7 +120,8 @@
                                     <input type="checkbox" class="form-check-input-custom" id="selectAll">
                                 </th>
                                 <th>Nome / Telefone</th>
-                                <th class="text-center">Presença</th>
+                                <th class="text-center">10/out</th>
+                                <th class="text-center">11/out</th>
                             </tr>
                         </thead>
                         <tbody id="guestTableBody">
@@ -129,9 +137,18 @@
                                     <small class="text-muted" style="font-family: monospace; font-size: 0.88rem;">{{ guest.phone_number }}</small>
                                 </td>
                                 <td class="text-center py-2.5">
-                                    {% if guest.is_confirmed %}
+                                    {% if guest.day1_status == 'confirmed' %}
                                         <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1" style="font-size: 0.82rem;">Confirmado</span>
-                                    {% elif guest.is_rejected %}
+                                    {% elif guest.day1_status == 'rejected' %}
+                                        <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1" style="font-size: 0.82rem;">Recusado</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2.5 py-1" style="font-size: 0.82rem;">Pendente</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center py-2.5">
+                                    {% if guest.day2_status == 'confirmed' %}
+                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1" style="font-size: 0.82rem;">Confirmado</span>
+                                    {% elif guest.day2_status == 'rejected' %}
                                         <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1" style="font-size: 0.82rem;">Recusado</span>
                                     {% else %}
                                         <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2.5 py-1" style="font-size: 0.82rem;">Pendente</span>

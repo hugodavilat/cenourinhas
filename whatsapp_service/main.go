@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
@@ -21,13 +23,32 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+func extractDigits(value string) string {
+	var sb strings.Builder
+	for _, r := range value {
+		if r >= '0' && r <= '9' {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
+}
+
+func normalizePhone(value string) string {
+	digits := extractDigits(value)
+	digits = strings.TrimPrefix(digits, "00")
+	return digits
+}
+
 // getAlternativePhone returns the alternative phone format for Brazilian numbers
 func getAlternativePhone(originalPhone string) string {
-	// Remove the 9 after the area code for Brazilian numbers if present
-	if len(originalPhone) >= 13 && originalPhone[:3] == "+55" && originalPhone[5] == '9' {
-		return originalPhone[:5] + originalPhone[6:]
+	phone := normalizePhone(originalPhone)
+	if len(phone) == 13 && strings.HasPrefix(phone, "55") && phone[4] == '9' {
+		return phone[:4] + phone[5:]
 	}
-	return originalPhone
+	if len(phone) == 12 && strings.HasPrefix(phone, "55") {
+		return phone[:4] + "9" + phone[4:]
+	}
+	return phone
 }
 
 var client *whatsmeow.Client
@@ -205,14 +226,9 @@ func main() {
 			return
 		}
 
-		// Try sending to both with and without the leading 9 after area code for Brazilian numbers
-		originalPhone := body.Phone
-		alternativePhone := originalPhone
-		// Only attempt for Brazilian numbers (country code 55) and if number has 13 digits (country+area+9+8)
-		if len(originalPhone) == 13 && originalPhone[:3] == "+55" && originalPhone[5] == '9' {
-			// Remove the 9 after the area code
-			alternativePhone = originalPhone[:5] + originalPhone[6:]
-		}
+		// Normalize the user-entered phone number and try both with and without the leading 9 after area code for Brazilian numbers
+		originalPhone := normalizePhone(body.Phone)
+		alternativePhone := getAlternativePhone(originalPhone)
 
 		msgText := fmt.Sprintf(`Seu código de acesso ao Cenourinhas é %s. Ele expira em 5 minutos.
 
@@ -225,19 +241,27 @@ Eu sou a IA do casamento e estou aqui para ajudar no que for preciso! Qualquer d
 			Conversation: &msgText,
 		})
 		if err != nil && alternativePhone != originalPhone {
+			fmt.Printf("send_otp original failed for %s: %v\n", originalPhone, err)
 			// Try alternative number if original failed
 			jidAlt := types.NewJID(alternativePhone, "s.whatsapp.net")
 			_, errAlt := client.SendMessage(context.Background(), jidAlt, &proto.Message{
 				Conversation: &msgText,
 			})
 			if errAlt != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed for both formats: " + err.Error() + ", " + errAlt.Error()})
+				fmt.Printf("send_otp alternative failed for %s: %v\n", alternativePhone, errAlt)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error":             "Failed for both formats",
+					"original_phone":    originalPhone,
+					"alternative_phone": alternativePhone,
+					"original_error":    err.Error(),
+					"alternative_error": errAlt.Error(),
+				})
 				return
 			}
 			c.JSON(http.StatusOK, gin.H{"status": "sent (alternative format)"})
 			return
 		} else if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "phone": originalPhone})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "sent"})
@@ -250,8 +274,10 @@ Eu sou a IA do casamento e estou aqui para ajudar no que for preciso! Qualquer d
 		}
 
 		var phone, message string
-		var imageData []byte
-		var hasImage bool
+		var fileData []byte
+		var hasFile bool
+		var fileName string
+		var mimeType string
 
 		ct := c.ContentType()
 		if ct == "application/json" {
@@ -267,49 +293,112 @@ Eu sou a IA do casamento e estou aqui para ajudar no que for preciso! Qualquer d
 			phone = body.Phone
 			message = body.Message
 			if len(body.Image) > 0 {
-				imageData = body.Image
-				hasImage = true
+				fileData = body.Image
+				hasFile = true
+				// Default para JSON
+				mimeType = http.DetectContentType(fileData)
 			}
 		} else {
 			phone = c.PostForm("phone")
 			message = c.PostForm("message")
 			file, err := c.FormFile("image")
 			if err == nil {
-				opened, _ := file.Open()
+				opened, err := file.Open()
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to open uploaded file"})
+					return
+				}
 				defer opened.Close()
-				imageData = make([]byte, file.Size)
-				_, _ = opened.Read(imageData)
-				hasImage = true
+				fileData, err = io.ReadAll(opened)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read uploaded file"})
+					return
+				}
+				hasFile = true
+				fileName = file.Filename
+				mimeType = file.Header.Get("Content-Type")
+				if mimeType == "" {
+					mimeType = http.DetectContentType(fileData)
+				}
 			}
 		}
 
-		// Try sending to both with and without the leading 9 after area code for Brazilian numbers
-		originalPhone := phone
-		alternativePhone := originalPhone
-		if len(originalPhone) == 13 && originalPhone[:3] == "+55" && originalPhone[5] == '9' {
-			alternativePhone = originalPhone[:5] + originalPhone[6:]
-		}
+		// Normalize the user-entered phone number and try both with and without the leading 9 after area code for Brazilian numbers
+		originalPhone := normalizePhone(phone)
+		alternativePhone := getAlternativePhone(originalPhone)
+		fmt.Printf("send_message request phone=%q original=%q alternative=%q hasFile=%v\n", phone, originalPhone, alternativePhone, hasFile)
 
-		sendWithImage := func(jid types.JID) error {
-			uploaded, err := client.Upload(context.Background(), imageData, whatsmeow.MediaImage)
+		sendWithFile := func(jid types.JID) error {
+			// Determinar tipo de mídia e garantir mimetype correto
+			var mediaType whatsmeow.MediaType
+
+			// Verificar se é PDF pela extensão ou mimetype
+			isPDF := mimeType == "application/pdf" || mimeType == "application/octet-stream"
+			if fileName != "" {
+				for i := len(fileName) - 1; i >= 0; i-- {
+					if fileName[i] == '.' {
+						ext := fileName[i+1:]
+						if ext == "pdf" || ext == "PDF" {
+							isPDF = true
+							mimeType = "application/pdf"
+						}
+						break
+					}
+				}
+			}
+
+			if isPDF {
+				mediaType = whatsmeow.MediaDocument
+				mimeType = "application/pdf" // Garantir mimetype correto para PDF
+			} else {
+				mediaType = whatsmeow.MediaImage
+				// Garantir que é imagem
+				if mimeType != "image/jpeg" && mimeType != "image/png" && mimeType != "image/gif" {
+					mimeType = http.DetectContentType(fileData)
+				}
+			}
+
+			uploaded, err := client.Upload(context.Background(), fileData, mediaType)
 			if err != nil {
 				return fmt.Errorf("Upload failed: %w", err)
 			}
-			mimetype := http.DetectContentType(imageData)
-			msg := &proto.Message{
-				ImageMessage: &proto.ImageMessage{
-					Caption:       &message,
-					URL:           &uploaded.URL,
-					Mimetype:      &mimetype,
-					FileSHA256:    uploaded.FileSHA256,
-					FileEncSHA256: uploaded.FileEncSHA256,
-					MediaKey:      uploaded.MediaKey,
-					FileLength:    &uploaded.FileLength,
-					DirectPath:    &uploaded.DirectPath,
-				},
+
+			// Criar mensagem baseada no tipo de mídia
+			if isPDF {
+				// Para PDF, usar DocumentMessage com todos os campos necessários
+				msg := &proto.Message{
+					DocumentMessage: &proto.DocumentMessage{
+						URL:           &uploaded.URL,
+						Mimetype:      &mimeType,
+						Title:         &fileName, // Nome do arquivo como título
+						FileSHA256:    uploaded.FileSHA256,
+						FileEncSHA256: uploaded.FileEncSHA256,
+						MediaKey:      uploaded.MediaKey,
+						FileLength:    &uploaded.FileLength,
+						DirectPath:    &uploaded.DirectPath,
+						Caption:       &message,
+						FileName:      &fileName,
+					},
+				}
+				_, err = client.SendMessage(context.Background(), jid, msg)
+				return err
+			} else {
+				// Para imagens, usar ImageMessage
+				msg := &proto.Message{
+					ImageMessage: &proto.ImageMessage{
+						Caption:       &message,
+						URL:           &uploaded.URL,
+						Mimetype:      &mimeType,
+						FileSHA256:    uploaded.FileSHA256,
+						FileEncSHA256: uploaded.FileEncSHA256,
+						MediaKey:      uploaded.MediaKey,
+						FileLength:    &uploaded.FileLength,
+						DirectPath:    &uploaded.DirectPath,
+					},
+				}
+				_, err = client.SendMessage(context.Background(), jid, msg)
+				return err
 			}
-			_, err = client.SendMessage(context.Background(), jid, msg)
-			return err
 		}
 
 		sendWithText := func(jid types.JID) error {
@@ -322,37 +411,58 @@ Eu sou a IA do casamento e estou aqui para ajudar no que for preciso! Qualquer d
 		// Try original number first
 		jid := types.NewJID(originalPhone, "s.whatsapp.net")
 		var err error
-		if hasImage {
-			err = sendWithImage(jid)
+		if hasFile {
+			err = sendWithFile(jid)
 		} else {
 			err = sendWithText(jid)
 		}
 		if err != nil && alternativePhone != originalPhone {
+			fmt.Printf("send_message original failed for %s: %v\n", originalPhone, err)
 			// Try alternative number if original failed
 			jidAlt := types.NewJID(alternativePhone, "s.whatsapp.net")
-			if hasImage {
-				errAlt := sendWithImage(jidAlt)
+			if hasFile {
+				errAlt := sendWithFile(jidAlt)
 				if errAlt != nil {
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed for both formats: " + err.Error() + ", " + errAlt.Error()})
+					fmt.Printf("send_message alternative failed for %s: %v\n", alternativePhone, errAlt)
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error":             "Failed for both formats",
+						"original_phone":    originalPhone,
+						"alternative_phone": alternativePhone,
+						"original_error":    err.Error(),
+						"alternative_error": errAlt.Error(),
+					})
 					return
 				}
-				c.JSON(http.StatusOK, gin.H{"status": "sent with image (alternative format)"})
+				c.JSON(http.StatusOK, gin.H{"status": "sent with file (alternative format)"})
 				return
 			} else {
 				errAlt := sendWithText(jidAlt)
 				if errAlt != nil {
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed for both formats: " + err.Error() + ", " + errAlt.Error()})
+					fmt.Printf("send_message alternative failed for %s: %v\n", alternativePhone, errAlt)
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error":             "Failed for both formats",
+						"original_phone":    originalPhone,
+						"alternative_phone": alternativePhone,
+						"original_error":    err.Error(),
+						"alternative_error": errAlt.Error(),
+					})
 					return
 				}
 				c.JSON(http.StatusOK, gin.H{"status": "sent (alternative format)"})
 				return
 			}
 		} else if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "phone": originalPhone})
 			return
 		}
-		if hasImage {
-			c.JSON(http.StatusOK, gin.H{"status": "sent with image"})
+		if hasFile {
+			fileType := "file"
+			if fileName != "" && mimeType != "application/pdf" {
+				fileType = "image"
+			} else if mimeType == "application/pdf" {
+				fileType = "PDF"
+			}
+			c.JSON(http.StatusOK, gin.H{"status": "sent with " + fileType})
 		} else {
 			c.JSON(http.StatusOK, gin.H{"status": "sent"})
 		}

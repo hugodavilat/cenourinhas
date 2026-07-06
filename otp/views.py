@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from .forms import PhoneForm, OTPForm
 from .models import OTP
-from .services import send_whatsapp_otp
+from .services import find_user_by_phone, normalize_phone_number, send_whatsapp_otp
 
 from core.decorators import ADMIN_PHONES
 from core.settings import DEBUG
@@ -17,36 +17,19 @@ def login_phone(request):
         if form.is_valid():
             country_code = form.cleaned_data["country_code"]
             phone_number = form.cleaned_data["phone"]
-            # Format phone number: remove spaces, dashes, parentheses and add country code
-            phone_clean = "".join(filter(str.isdigit, phone_number))
-            full_phone = f"+{country_code}{phone_clean}"
-
+            full_phone = normalize_phone_number(phone_number, country_code)
 
             # Try to find Guest by phone, or ExtraGuest by phone
-            user = None
-            is_extra = False
-
-            try:
-                user = Guest.objects.get(phone_number=full_phone)
-            except Guest.DoesNotExist:
-                extra = None
-                if full_phone:
-                    try:
-                        extra = ExtraGuest.objects.get(phone_number=full_phone)
-                    except ExtraGuest.DoesNotExist:
-                        pass
-                if extra:
-                    user = extra.main_guest
-                    is_extra = True
-                else:
-                    print(f"Redirect: phone not in guest list ({full_phone})")
-                    form.add_error(None, "Este número de telefone não está na lista de convidados.")
-                    return render(request, "otp/login_phone.html", {"form": form, "site_content": SiteContent.load()})
+            user, is_extra, matched_phone = find_user_by_phone(phone_number, country_code)
+            if not user:
+                print(f"Redirect: phone not in guest list ({full_phone})")
+                form.add_error(None, "Este número de telefone não está na lista de convidados.")
+                return render(request, "otp/login_phone.html", {"form": form, "site_content": SiteContent.load()})
 
             # Mark in session if this is an extra guest login
             request.session["is_extra_guest_login"] = is_extra
             if is_extra:
-                request.session["extra_guest_phone"] = full_phone
+                request.session["extra_guest_phone"] = matched_phone or full_phone
             else:
                 request.session.pop("extra_guest_phone", None)
             request.session["otp_user_id"] = user.id
@@ -65,16 +48,20 @@ def login_phone(request):
                 print(f"DEBUG: OTP para {full_phone} é {code}")
                 # Skip WhatsApp in debug mode - auto-verify
             try:
-                sent = send_whatsapp_otp(full_phone, code)
+                sent, error = send_whatsapp_otp(full_phone, code)
             except Exception as exc:
                 print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
                 messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
                 if not DEBUG:
                     return redirect("login_phone")
+                error = str(exc)
 
             if not sent:
-                print(f"Redirect: não foi possível enviar OTP para {full_phone}")
-                messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Verifique o número ou tente novamente mais tarde.")
+                print(f"Redirect: não foi possível enviar OTP para {full_phone}: {error}")
+                if DEBUG:
+                    messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Erro do serviço: {error}")
+                else:
+                    messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Verifique o número ou tente novamente mais tarde.")
                 if not DEBUG:
                     return redirect("login_phone")
 
@@ -85,6 +72,9 @@ def login_phone(request):
             )
 
             user.is_confirmed = False
+            # keep per-day state consistent with legacy behavior: reset per-day to pending when re-sending OTP
+            user.day1_status = 'pending'
+            user.day2_status = 'pending'
             user.message_sent = True
             user.save()
 
@@ -132,8 +122,11 @@ def verify_otp(request):
                 if otp.is_expired():
                     messages.error(request, "Code expired")
                     return redirect("login_phone")
-                # Confirm the extra guest
+                # Confirm the extra guest (legacy: mark both days confirmed)
+                extra.day1_status = 'confirmed'
+                extra.day2_status = 'confirmed'
                 extra.is_confirmed = True
+                extra.not_answered = False
                 extra.save()
                 otp_valid = True
             else:
@@ -148,7 +141,11 @@ def verify_otp(request):
             
             # mark guest as confirmed and store authenticated flag in session
             if otp_valid:
+                # Mark user as confirmed for both days (legacy behavior)
+                user.day1_status = 'confirmed'
+                user.day2_status = 'confirmed'
                 user.is_confirmed = True
+                user.not_answered = False
                 # reset message_sent since verification succeeded
                 user.message_sent = False
                 user.save()

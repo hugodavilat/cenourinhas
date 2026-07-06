@@ -1,3 +1,4 @@
+import logging
 import mercadopago
 from assistant.ai import whatsapp_gemini_api
 from otp.services import send_whatsapp_message
@@ -5,6 +6,7 @@ from otp.services import send_whatsapp_message
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
+from django.db.models import Q
 from core.mercadopago_sdk import get_sdk
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -46,37 +48,37 @@ def home(request):
     
     if request.method == "POST":
         updated = False
+
+        def _save_rsvp_person(person, day, action, person_name):
+            status_field = f"day{day}_status"
+            setattr(person, status_field, 'confirmed' if action == 'confirmed' else 'rejected')
+            person.is_confirmed = person.day1_status == 'confirmed' and person.day2_status == 'confirmed'
+            person.is_rejected = person.day1_status == 'rejected' and person.day2_status == 'rejected'
+            person.not_answered = person.day1_status == 'pending' and person.day2_status == 'pending'
+            person.save()
+            return f"Presença de {person_name} no dia {day} {'confirmada' if action == 'confirmed' else 'rejeitada'}!"
+
         # Principal
-        if f"confirm_{main_guest.id}" in request.POST:
-            confirm = request.POST.get(f"confirm_{main_guest.id}") == "1"
-            if confirm:
-                main_guest.is_confirmed = True
-                main_guest.is_rejected = False
-                main_guest.not_answered = False
-                msg = f"Presença de {main_guest.name} confirmada!"
-            else:
-                main_guest.is_confirmed = False
-                main_guest.is_rejected = True
-                main_guest.not_answered = False
-                msg = f"Presença de {main_guest.name} rejeitada!"
-            main_guest.save()
+        if f"day1_guest_{main_guest.id}" in request.POST:
+            action = request.POST.get(f"day1_guest_{main_guest.id}")
+            msg = _save_rsvp_person(main_guest, 1, action, main_guest.name)
             updated = True
+        elif f"day2_guest_{main_guest.id}" in request.POST:
+            action = request.POST.get(f"day2_guest_{main_guest.id}")
+            msg = _save_rsvp_person(main_guest, 2, action, main_guest.name)
+            updated = True
+
         # Extras
         for extra in extras:
-            if f"confirm_extra_{extra.id}" in request.POST:
-                confirm = request.POST.get(f"confirm_extra_{extra.id}") == "1"
-                if confirm:
-                    extra.is_confirmed = True
-                    extra.is_rejected = False
-                    extra.not_answered = False
-                    msg = f"Presença de {extra.name} confirmada!"
-                else:
-                    extra.is_confirmed = False
-                    extra.is_rejected = True
-                    extra.not_answered = False
-                    msg = f"Presença de {extra.name} rejeitada!"
-                extra.save()
+            if f"day1_extra_{extra.id}" in request.POST:
+                action = request.POST.get(f"day1_extra_{extra.id}")
+                msg = _save_rsvp_person(extra, 1, action, extra.name)
                 updated = True
+            elif f"day2_extra_{extra.id}" in request.POST:
+                action = request.POST.get(f"day2_extra_{extra.id}")
+                msg = _save_rsvp_person(extra, 2, action, extra.name)
+                updated = True
+
         if updated:
             success = True
         # Atualiza os objetos após salvar
@@ -153,7 +155,10 @@ def notificar_present(pagamento: Pagamento):
     )
     for admin_phone in admin_list:
         try:
-            send_whatsapp_message(admin_phone, text)
+            success, error = send_whatsapp_message(admin_phone, text)
+            if not success:
+                logger = logging.getLogger(__name__)
+                logger.warning("Failed to notify admin %s via WhatsApp: %s", admin_phone, error)
         except Exception:
             # swallow errors to keep webhook resilient
             pass
@@ -497,27 +502,46 @@ def admin_delete_extra_guest(request, pk):
 @wedding_admin_required
 def send_whatsapp_mass(request):
     selected_status = request.POST.get("status", request.GET.get("status", "all"))
+    selected_day = request.POST.get("day", request.GET.get("day", "all"))
     selected_guests = request.POST.getlist("selected_guests") if request.method == "POST" else []
 
     # Filter guests by status
     # Filtra apenas convidados com telefone preenchido
     guests = Guest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
-    if selected_status == "confirmed":
-        guests = guests.filter(is_confirmed=True)
-    elif selected_status == "not_answered":
-        guests = guests.filter(not_answered=True)
-    elif selected_status == "rejected":
-        guests = guests.filter(is_rejected=True)
+    status_map = {
+        'confirmed': 'confirmed',
+        'not_answered': 'pending',
+        'rejected': 'rejected',
+    }
+
+    # Apply status filter, optionally scoped to a specific day
+    if selected_status in status_map:
+        if selected_day in ("day1", "day2"):
+            field = 'day1_status' if selected_day == 'day1' else 'day2_status'
+            guests = guests.filter(**{field: status_map[selected_status]})
+        else:
+            # For 'all' days: match if ANY day matches the desired status
+            if selected_status == "confirmed":
+                guests = guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
+            elif selected_status == "not_answered":
+                guests = guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
+            elif selected_status == "rejected":
+                guests = guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
 
     # Get ExtraGuests with phone numbers
     extra_guests = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
-    # Optionally filter extra guests by status
-    if selected_status == "confirmed":
-        extra_guests = extra_guests.filter(is_confirmed=True)
-    elif selected_status == "not_answered":
-        extra_guests = extra_guests.filter(not_answered=True)
-    elif selected_status == "rejected":
-        extra_guests = extra_guests.filter(is_rejected=True)
+    if selected_status in status_map:
+        if selected_day in ("day1", "day2"):
+            field = 'day1_status' if selected_day == 'day1' else 'day2_status'
+            extra_guests = extra_guests.filter(**{field: status_map[selected_status]})
+        else:
+            # For 'all' days: match if ANY day matches the desired status
+            if selected_status == "confirmed":
+                extra_guests = extra_guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
+            elif selected_status == "not_answered":
+                extra_guests = extra_guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
+            elif selected_status == "rejected":
+                extra_guests = extra_guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
 
     # Combine guests and extra_guests into a single list
     all_guests = list(guests) + list(extra_guests)
@@ -536,19 +560,24 @@ def send_whatsapp_mass(request):
             if not guests_to_send:
                 messages.error(request, "Nenhum convidado válido com telefone selecionado para envio.")
                 return redirect(reverse("send_whatsapp_mass"))
+            
             for guest in guests_to_send:
                 phone = getattr(guest, "phone_number", None)
                 name = getattr(guest, "name", str(guest))
                 # Replace {{name}} in message template
                 message = message_template.replace("{{name}}", name)
                 try:
-                    success = send_whatsapp_message(phone, message, image)
+                    # Reset file pointer before each send if image exists
+                    if image:
+                        image.seek(0)
+                    success, error = send_whatsapp_message(phone, message, image)
                 except Exception as exc:
                     success = False
+                    error = str(exc)
                 if success:
                     sent_guests.append(guest)
                 else:
-                    errors.append(f"{name} ({phone})")
+                    errors.append(f"{name} ({phone}): {error}")
             if sent_guests:
                 return render(request, "admin/whatsapp_feedback.html", {
                     "sent_guests": sent_guests
@@ -563,5 +592,6 @@ def send_whatsapp_mass(request):
         "form": form,
         "guests": all_guests,
         "selected_status": selected_status,
+        "selected_day": selected_day,
         "selected_guests": [int(gid) for gid in selected_guests],
     })

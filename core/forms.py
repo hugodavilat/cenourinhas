@@ -14,16 +14,16 @@ class PagamentoForm(forms.ModelForm):
 class GuestForm(forms.ModelForm):
     class Meta:
         model = Guest
-        fields = ['name', 'phone_number', 'is_confirmed', 'message_sent', 'active_session_key', 'active_until']
+        fields = ['name', 'phone_number', 'day1_status', 'day2_status', 'is_confirmed', 'message_sent', 'active_session_key', 'active_until']
 
 class ExtraGuestForm(forms.ModelForm):
     class Meta:
         model = ExtraGuest
-        fields = ['name', 'phone_number', 'is_confirmed']
+        fields = ['name', 'phone_number', 'day1_status', 'day2_status', 'is_confirmed']
 
 class WhatsAppMessageForm(forms.Form):
     message = forms.CharField(widget=forms.Textarea, required=True, label="Mensagem WhatsApp")
-    image = forms.ImageField(required=False, label="Imagem (opcional)")
+    image = forms.FileField(required=False, label="Anexo (Imagem ou PDF)", help_text="Formatos suportados: PNG, JPG, PDF")
 
 
 class SiteContentForm(forms.ModelForm):

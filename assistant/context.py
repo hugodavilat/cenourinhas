@@ -78,8 +78,11 @@ função da tool.
 
 Ferramentas disponíveis:
 
-1. **confirm_presence(phone: string, confirm: boolean)**  
+1. **confirm_presence(phone: string, day1: boolean, day2: boolean)**  
    Use quando o usuário disser que quer confirmar ou negar presença.
+   Opcionalmente `day1` pode ser `True` (10/10) ou `False` (10/10).
+   Opcionalmente `day2` pode ser `True` (11/10) ou `False` (11/10).
+   Se omitido, aplica-se a ambos os dias (comportamento padrão).
 
 2. **get_gift_options()**  
    Use quando o usuário pedir para ver lista de presentes, opções de presentes,

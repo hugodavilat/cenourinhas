@@ -1,6 +1,12 @@
 from django.db import models
 from django.db.models import JSONField
 
+DAY_STATUS_CHOICES = [
+    ('pending', 'Pendente'),
+    ('confirmed', 'Confirmado'),
+    ('rejected', 'Rejeitado'),
+]
+
 class Presente(models.Model):
     nome = models.CharField(max_length=255)
     descricao = models.TextField(blank=True, null=True)
@@ -52,6 +58,8 @@ class Guest(models.Model):
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20, unique=True, blank=True, null=True)
     jid = models.CharField(max_length=64, unique=True, blank=True, null=True, help_text="WhatsApp JID, e.g. 115831006589136@lid or 5511999999999@s.whatsapp.net")
+    day1_status = models.CharField(max_length=10, choices=DAY_STATUS_CHOICES, default='pending')
+    day2_status = models.CharField(max_length=10, choices=DAY_STATUS_CHOICES, default='pending')
     is_confirmed = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
     not_answered = models.BooleanField(default=True)
@@ -71,6 +79,8 @@ class ExtraGuest(models.Model):
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
     jid = models.CharField(max_length=64, unique=True, blank=True, null=True, help_text="WhatsApp JID, e.g. 115831006589136@lid or 5511999999999@s.whatsapp.net")
+    day1_status = models.CharField(max_length=10, choices=DAY_STATUS_CHOICES, default='pending')
+    day2_status = models.CharField(max_length=10, choices=DAY_STATUS_CHOICES, default='pending')
     is_confirmed = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
     not_answered = models.BooleanField(default=True)
