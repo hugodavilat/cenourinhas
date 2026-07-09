@@ -585,10 +585,17 @@ def admin_delete_extra_guest(request, pk):
 def send_whatsapp_mass(request):
     selected_status = request.POST.get("status", request.GET.get("status", "all"))
     selected_day = request.POST.get("day", request.GET.get("day", "all"))
-    selected_guests = request.POST.getlist("selected_guests") if request.method == "POST" else []
+    
+    # In GET requests, selected_guests comes from the URL (if any).
+    # In POST requests, it comes from form submissions.
+    # We expect 'guest-ID' or 'extra-ID' format.
+    selected_guests_from_request = request.POST.getlist("selected_guests") if request.method == "POST" else request.GET.getlist("selected_guests")
+    selected_guest_identifiers = set(selected_guests_from_request)
 
     # Filtra apenas convidados com telefone preenchido
-    guests = Guest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
+    guests_queryset = Guest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
+    extra_guests_queryset = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
+
     status_map = {
         'confirmed': 'confirmed',
         'not_answered': 'pending',
@@ -596,35 +603,33 @@ def send_whatsapp_mass(request):
     }
 
     if selected_status == 'not_sent':
-        guests = guests.filter(message_sent=False)
-        extra_guests = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="").filter(message_sent=False)
+        guests_queryset = guests_queryset.filter(message_sent=False)
+        extra_guests_queryset = extra_guests_queryset.filter(message_sent=False)
     else:
         if selected_status in status_map:
             if selected_day in ("day1", "day2"):
                 field = 'day1_status' if selected_day == 'day1' else 'day2_status'
-                guests = guests.filter(**{field: status_map[selected_status]})
+                guests_queryset = guests_queryset.filter(**{field: status_map[selected_status]})
+                extra_guests_queryset = extra_guests_queryset.filter(**{field: status_map[selected_status]})
             else:
                 if selected_status == "confirmed":
-                    guests = guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
+                    guests_queryset = guests_queryset.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
+                    extra_guests_queryset = extra_guests_queryset.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
                 elif selected_status == "not_answered":
-                    guests = guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
+                    guests_queryset = guests_queryset.filter(Q(day1_status='pending') | Q(day2_status='pending'))
+                    extra_guests_queryset = extra_guests_queryset.filter(Q(day1_status='pending') | Q(day2_status='pending'))
                 elif selected_status == "rejected":
-                    guests = guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
+                    guests_queryset = guests_queryset.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
+                    extra_guests_queryset = extra_guests_queryset.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
 
-        extra_guests = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
-        if selected_status in status_map:
-            if selected_day in ("day1", "day2"):
-                field = 'day1_status' if selected_day == 'day1' else 'day2_status'
-                extra_guests = extra_guests.filter(**{field: status_map[selected_status]})
-            else:
-                if selected_status == "confirmed":
-                    extra_guests = extra_guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
-                elif selected_status == "not_answered":
-                    extra_guests = extra_guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
-                elif selected_status == "rejected":
-                    extra_guests = extra_guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
-
-    all_guests = list(guests) + list(extra_guests)
+    # Add 'identifier' attribute to each guest for unique identification
+    all_guests_with_identifiers = []
+    for guest in guests_queryset:
+        guest.identifier = f"guest-{guest.id}"
+        all_guests_with_identifiers.append(guest)
+    for extra_guest in extra_guests_queryset:
+        extra_guest.identifier = f"extra-{extra_guest.id}"
+        all_guests_with_identifiers.append(extra_guest)
 
     if request.method == "POST":
         form = WhatsAppMessageForm(request.POST, request.FILES)
@@ -632,10 +637,10 @@ def send_whatsapp_mass(request):
             message_template = form.cleaned_data["message"]
             image = form.cleaned_data.get("image")
 
-            selected_ids = set(int(gid) for gid in selected_guests) if selected_guests else None
+            # Filter guests based on selected_guest_identifiers
             guests_to_send = [
-                g for g in all_guests
-                if getattr(g, "phone_number", None) and (selected_ids is None or g.id in selected_ids)
+                g for g in all_guests_with_identifiers
+                if getattr(g, "phone_number", None) and g.identifier in selected_guest_identifiers
             ]
 
             if not guests_to_send:
@@ -667,6 +672,8 @@ def send_whatsapp_mass(request):
 
             items_data = []
             for guest in guests_to_send:
+                # Extract guest_id and guest_type from the identifier
+                guest_type, guest_id = guest.identifier.split('-')
                 item = WhatsAppBatchItem.objects.create(
                     batch=batch,
                     guest_name=getattr(guest, "name", str(guest)),
@@ -676,8 +683,8 @@ def send_whatsapp_mass(request):
                     'item_id': item.id,
                     'name': item.guest_name,
                     'phone': item.phone_number,
-                    'guest_id': guest.id if isinstance(guest, Guest) else None,
-                    'guest_type': 'guest' if isinstance(guest, Guest) else 'extra',
+                    'guest_id': guest_id, # Use the extracted ID
+                    'guest_type': guest_type, # Use the extracted type
                 })
 
             thread = threading.Thread(
@@ -693,10 +700,10 @@ def send_whatsapp_mass(request):
 
     return render(request, "admin/send_whatsapp.html", {
         "form": form,
-        "guests": all_guests,
+        "guests": all_guests_with_identifiers, # Pass the list with identifiers
         "selected_status": selected_status,
         "selected_day": selected_day,
-        "selected_guests": [int(gid) for gid in selected_guests],
+        "selected_guest_identifiers": selected_guest_identifiers, # Pass the set of identifiers for checking 'checked' state
     })
 
 

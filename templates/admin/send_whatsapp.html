@@ -129,9 +129,9 @@
                             {% for guest in guests %}
                             <tr style="border-bottom: 1px solid rgba(38,66,42,0.06);">
                                 <td class="ps-3 text-center">
-                                    <input type="checkbox" name="selected_guests" value="{{ guest.id }}" 
+                                    <input type="checkbox" name="selected_guests" value="{{ guest.identifier }}" 
                                            form="mainForm" class="form-check-input-custom guest-checkbox"
-                                           {% if guest.id in selected_guests %}checked{% endif %}>
+                                           {% if guest.identifier in selected_guest_identifiers %}checked{% endif %}>
                                 </td>
                                 <td class="py-2.5">
                                     <div class="fw-medium" style="color: var(--green);">{{ guest.name }}</div>
