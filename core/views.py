@@ -1,5 +1,10 @@
 import logging
 import mercadopago
+import threading
+import time
+from django.core.files.base import ContentFile
+from django.db import close_old_connections
+from django.utils import timezone
 from assistant.ai import whatsapp_gemini_api
 from otp.services import send_whatsapp_message
 
@@ -16,6 +21,7 @@ from django.urls import reverse
 from .forms import WhatsAppMessageForm, PresenteForm, PagamentoForm, GuestForm, ExtraGuestForm, SiteContentForm
 from .models import Presente, Pagamento, Guest, ExtraGuest, SiteContent
 from .decorators import guest_required, wedding_admin_required
+from .models import WhatsAppBatch, WhatsAppBatchItem
 
 
 def get_sdk():
@@ -162,6 +168,82 @@ def notificar_present(pagamento: Pagamento):
         except Exception:
             # swallow errors to keep webhook resilient
             pass
+
+logger = logging.getLogger(__name__)
+
+
+WHATSAPP_SEND_DELAY_SECONDS = getattr(settings, 'WHATSAPP_SEND_DELAY_SECONDS', 1.0)
+
+
+def _send_whatsapp_batch_in_background(batch_id, items_data, message_template, image_bytes, image_name):
+    """
+    Roda em uma thread separada, fora do request-response cycle.
+    Loop sequencial com pausa entre envios para evitar timeouts e rate limits.
+    """
+    close_old_connections()
+
+    try:
+        batch = WhatsAppBatch.objects.get(id=batch_id)
+    except WhatsAppBatch.DoesNotExist:
+        return
+
+    image_file = None
+    if image_bytes:
+        image_file = ContentFile(image_bytes, name=image_name)
+
+    for item_data in items_data:
+        try:
+            item = WhatsAppBatchItem.objects.get(id=item_data['item_id'])
+        except WhatsAppBatchItem.DoesNotExist:
+            continue
+
+        message = message_template.replace("{{name}}", item_data['name'])
+
+        try:
+            if image_file:
+                image_file.seek(0)
+            success, error = send_whatsapp_message(item_data['phone'], message, image_file)
+        except Exception as exc:
+            success = False
+            error = str(exc)
+
+        if success:
+            item.status = 'sent'
+            item.sent_at = timezone.now()
+            batch.sent_count = batch.sent_count + 1
+        else:
+            item.status = 'failed'
+            item.error_message = (error or 'Erro desconhecido')[:2000]
+            batch.failed_count = batch.failed_count + 1
+            logger.warning(
+                "Falha ao enviar WhatsApp para %s (%s): %s",
+                item.guest_name, item.phone_number, item.error_message
+            )
+
+        item.save(update_fields=['status', 'error_message', 'sent_at'])
+        batch.save(update_fields=['sent_count', 'failed_count'])
+
+        guest_id = item_data.get('guest_id')
+        guest_type = item_data.get('guest_type')
+        if guest_type == 'guest' and guest_id:
+            try:
+                guest = Guest.objects.get(id=guest_id)
+                guest.message_sent = success
+                guest.save(update_fields=['message_sent'])
+            except Guest.DoesNotExist:
+                pass
+        elif guest_type == 'extra' and guest_id:
+            try:
+                extra_guest = ExtraGuest.objects.get(id=guest_id)
+                extra_guest.message_sent = success
+                extra_guest.save(update_fields=['message_sent'])
+            except ExtraGuest.DoesNotExist:
+                pass
+
+        time.sleep(WHATSAPP_SEND_DELAY_SECONDS)
+
+    batch.mark_completed()
+    close_old_connections()
 
 @guest_required
 def iniciar_pagamento(request, presente_id):
@@ -392,7 +474,7 @@ def admin_add_presente(request):
 
 @wedding_admin_required
 def admin_edit_presente(request, pk):
-    presente = get_object_or_404(Presente, pk=pk)
+    presente = get_object_or_400(Presente, pk=pk)
     if request.method == 'POST':
         form = PresenteForm(request.POST, instance=presente)
         if form.is_valid():
@@ -505,7 +587,6 @@ def send_whatsapp_mass(request):
     selected_day = request.POST.get("day", request.GET.get("day", "all"))
     selected_guests = request.POST.getlist("selected_guests") if request.method == "POST" else []
 
-    # Filter guests by status
     # Filtra apenas convidados com telefone preenchido
     guests = Guest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
     status_map = {
@@ -514,36 +595,35 @@ def send_whatsapp_mass(request):
         'rejected': 'rejected',
     }
 
-    # Apply status filter, optionally scoped to a specific day
-    if selected_status in status_map:
-        if selected_day in ("day1", "day2"):
-            field = 'day1_status' if selected_day == 'day1' else 'day2_status'
-            guests = guests.filter(**{field: status_map[selected_status]})
-        else:
-            # For 'all' days: match if ANY day matches the desired status
-            if selected_status == "confirmed":
-                guests = guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
-            elif selected_status == "not_answered":
-                guests = guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
-            elif selected_status == "rejected":
-                guests = guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
+    if selected_status == 'not_sent':
+        guests = guests.filter(message_sent=False)
+        extra_guests = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="").filter(message_sent=False)
+    else:
+        if selected_status in status_map:
+            if selected_day in ("day1", "day2"):
+                field = 'day1_status' if selected_day == 'day1' else 'day2_status'
+                guests = guests.filter(**{field: status_map[selected_status]})
+            else:
+                if selected_status == "confirmed":
+                    guests = guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
+                elif selected_status == "not_answered":
+                    guests = guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
+                elif selected_status == "rejected":
+                    guests = guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
 
-    # Get ExtraGuests with phone numbers
-    extra_guests = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
-    if selected_status in status_map:
-        if selected_day in ("day1", "day2"):
-            field = 'day1_status' if selected_day == 'day1' else 'day2_status'
-            extra_guests = extra_guests.filter(**{field: status_map[selected_status]})
-        else:
-            # For 'all' days: match if ANY day matches the desired status
-            if selected_status == "confirmed":
-                extra_guests = extra_guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
-            elif selected_status == "not_answered":
-                extra_guests = extra_guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
-            elif selected_status == "rejected":
-                extra_guests = extra_guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
+        extra_guests = ExtraGuest.objects.exclude(phone_number__isnull=True).exclude(phone_number="")
+        if selected_status in status_map:
+            if selected_day in ("day1", "day2"):
+                field = 'day1_status' if selected_day == 'day1' else 'day2_status'
+                extra_guests = extra_guests.filter(**{field: status_map[selected_status]})
+            else:
+                if selected_status == "confirmed":
+                    extra_guests = extra_guests.filter(Q(day1_status='confirmed') | Q(day2_status='confirmed'))
+                elif selected_status == "not_answered":
+                    extra_guests = extra_guests.filter(Q(day1_status='pending') | Q(day2_status='pending'))
+                elif selected_status == "rejected":
+                    extra_guests = extra_guests.filter(Q(day1_status='rejected') | Q(day2_status='rejected'))
 
-    # Combine guests and extra_guests into a single list
     all_guests = list(guests) + list(extra_guests)
 
     if request.method == "POST":
@@ -552,39 +632,62 @@ def send_whatsapp_mass(request):
             message_template = form.cleaned_data["message"]
             image = form.cleaned_data.get("image")
 
-            # Only send to selected guests
-            selected_ids = set(int(gid) for gid in selected_guests)
-            guests_to_send = [g for g in all_guests if g.id in selected_ids and getattr(g, "phone_number", None)] if selected_guests else [g for g in all_guests if getattr(g, "phone_number", None)]
-            errors = []
-            sent_guests = []
+            selected_ids = set(int(gid) for gid in selected_guests) if selected_guests else None
+            guests_to_send = [
+                g for g in all_guests
+                if getattr(g, "phone_number", None) and (selected_ids is None or g.id in selected_ids)
+            ]
+
             if not guests_to_send:
                 messages.error(request, "Nenhum convidado válido com telefone selecionado para envio.")
                 return redirect(reverse("send_whatsapp_mass"))
-            
+
+            batch_ja_rodando = WhatsAppBatch.objects.filter(status='running').first()
+            if batch_ja_rodando:
+                messages.error(
+                    request,
+                    "Já existe um envio em andamento (iniciado em "
+                    f"{batch_ja_rodando.created_at.strftime('%d/%m %H:%M')}). "
+                    "Aguarde ele terminar antes de iniciar outro."
+                )
+                return redirect(reverse("whatsapp_batch_status", args=[batch_ja_rodando.id]))
+
+            image_bytes = None
+            image_name = None
+            if image:
+                image.seek(0)
+                image_bytes = image.read()
+                image_name = image.name
+
+            batch = WhatsAppBatch.objects.create(
+                created_by=getattr(request.user, 'username', '') if request.user.is_authenticated else '',
+                message_template=message_template,
+                total=len(guests_to_send),
+            )
+
+            items_data = []
             for guest in guests_to_send:
-                phone = getattr(guest, "phone_number", None)
-                name = getattr(guest, "name", str(guest))
-                # Replace {{name}} in message template
-                message = message_template.replace("{{name}}", name)
-                try:
-                    # Reset file pointer before each send if image exists
-                    if image:
-                        image.seek(0)
-                    success, error = send_whatsapp_message(phone, message, image)
-                except Exception as exc:
-                    success = False
-                    error = str(exc)
-                if success:
-                    sent_guests.append(guest)
-                else:
-                    errors.append(f"{name} ({phone}): {error}")
-            if sent_guests:
-                return render(request, "admin/whatsapp_feedback.html", {
-                    "sent_guests": sent_guests
+                item = WhatsAppBatchItem.objects.create(
+                    batch=batch,
+                    guest_name=getattr(guest, "name", str(guest)),
+                    phone_number=guest.phone_number,
+                )
+                items_data.append({
+                    'item_id': item.id,
+                    'name': item.guest_name,
+                    'phone': item.phone_number,
+                    'guest_id': guest.id if isinstance(guest, Guest) else None,
+                    'guest_type': 'guest' if isinstance(guest, Guest) else 'extra',
                 })
-            else:
-                messages.error(request, f"Falha ao enviar para: {', '.join(errors)}")
-                return redirect(reverse("send_whatsapp_mass"))
+
+            thread = threading.Thread(
+                target=_send_whatsapp_batch_in_background,
+                args=(batch.id, items_data, message_template, image_bytes, image_name),
+                daemon=True,
+            )
+            thread.start()
+
+            return redirect(reverse("whatsapp_batch_status", args=[batch.id]))
     else:
         form = WhatsAppMessageForm(initial={"status": selected_status})
 
@@ -594,4 +697,32 @@ def send_whatsapp_mass(request):
         "selected_status": selected_status,
         "selected_day": selected_day,
         "selected_guests": [int(gid) for gid in selected_guests],
+    })
+
+
+@wedding_admin_required
+def whatsapp_batch_status(request, batch_id):
+    batch = get_object_or_404(WhatsAppBatch, id=batch_id)
+    return render(request, "admin/whatsapp_batch_status.html", {"batch": batch})
+
+
+@wedding_admin_required
+def whatsapp_batch_status_json(request, batch_id):
+    batch = get_object_or_404(WhatsAppBatch, id=batch_id)
+    items = batch.items.all()
+
+    return JsonResponse({
+        "status": batch.status,
+        "total": batch.total,
+        "sent_count": batch.sent_count,
+        "failed_count": batch.failed_count,
+        "items": [
+            {
+                "name": i.guest_name,
+                "phone": i.phone_number,
+                "status": i.status,
+                "error": i.error_message,
+            }
+            for i in items
+        ],
     })

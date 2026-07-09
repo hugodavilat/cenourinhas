@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import JSONField
+from django.utils import timezone
 
 DAY_STATUS_CHOICES = [
     ('pending', 'Pendente'),
@@ -84,6 +85,7 @@ class ExtraGuest(models.Model):
     is_confirmed = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
     not_answered = models.BooleanField(default=True)
+    message_sent = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} (Extra of {self.main_guest.name})"
@@ -119,5 +121,55 @@ class SiteContent(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class WhatsAppBatch(models.Model):
+    """Representa um disparo em massa de mensagens de WhatsApp."""
+
+    STATUS_CHOICES = [
+        ('running', 'Em andamento'),
+        ('completed', 'Concluído'),
+        ('failed', 'Falhou'),
+    ]
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=255, blank=True, default='')
+    message_template = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='running')
+    total = models.PositiveIntegerField(default=0)
+    sent_count = models.PositiveIntegerField(default=0)
+    failed_count = models.PositiveIntegerField(default=0)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    def mark_completed(self):
+        self.status = 'completed'
+        self.finished_at = timezone.now()
+        self.save(update_fields=['status', 'finished_at'])
+
+    def __str__(self):
+        return f"Batch #{self.id} ({self.sent_count}/{self.total} enviados)"
+
+
+class WhatsAppBatchItem(models.Model):
+    """Status de envio para um convidado específico dentro de um batch."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pendente'),
+        ('sent', 'Enviado'),
+        ('failed', 'Falhou'),
+    ]
+
+    batch = models.ForeignKey(WhatsAppBatch, related_name='items', on_delete=models.CASCADE)
+    guest_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=50)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    error_message = models.TextField(blank=True, default='')
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.guest_name} ({self.phone_number}) - {self.status}"
 
 

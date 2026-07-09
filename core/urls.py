@@ -51,6 +51,8 @@ urlpatterns = [
     path('wedding-admin/extra/<int:pk>/edit/', views.admin_edit_extra_guest, name='admin_edit_extra_guest'),
     path('wedding-admin/extra/<int:pk>/delete/', views.admin_delete_extra_guest, name='admin_delete_extra_guest'),
     path("wedding-admin/send-whatsapp/", views.send_whatsapp_mass, name="send_whatsapp_mass"),
+    path("wedding-admin/whatsapp-batch/<int:batch_id>/", views.whatsapp_batch_status, name="whatsapp_batch_status"),
+    path("wedding-admin/whatsapp-batch/<int:batch_id>/json/", views.whatsapp_batch_status_json, name="whatsapp_batch_status_json"),
 ]
 
 if settings.DEBUG:

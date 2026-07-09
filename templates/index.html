@@ -184,67 +184,59 @@
     background: rgba(152, 66, 22, 0.03);
   }
 
-  .btn-rsvp-action {
-    border-radius: 30px;
-    font-size: 0.88rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 500;
-    padding: 0.55rem 1.3rem;
-    transition: all 0.2s;
-    min-width: 8rem;
-  }
-
-  .rsvp-guest-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    width: 100%;
-    min-width: 0;
-  }
-
   .rsvp-day-card {
     background: rgba(38, 66, 42, 0.04);
     border-radius: 14px;
     border: 1px solid rgba(38, 66, 42, 0.08);
-    padding: 1rem;
-    flex: 1 1 240px;
-    min-width: 220px;
+    padding: 0.75rem 0.9rem;
+    flex: 1 1 220px;
+    min-width: 190px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .rsvp-day-card .day-title {
+    flex: 1 0 100%;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: 0.8rem;
-    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-bottom: 0.1rem;
   }
 
-  .rsvp-guest-actions .badge,
-  .rsvp-guest-actions .btn-rsvp-action {
-    flex: 0 1 auto;
+  .rsvp-day-card .badge {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.72rem;
+  }
+
+  /* the button wrapper div (d-flex flex-wrap gap-2 mt-3) */
+  .rsvp-day-card > .mt-3 {
+    margin-top: 0 !important;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-rsvp-action {
+    border-radius: 30px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    padding: 0.35rem 0.85rem;
+    transition: all 0.2s;
     min-width: 0;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 576px) {
     .rsvp-guest-item {
-      padding: 1rem 1rem;
+      padding: 1rem;
     }
 
-    .rsvp-guest-item .rsvp-guest-actions {
-      justify-content: center;
-    }
-
-    .rsvp-guest-actions .badge,
-    .rsvp-guest-actions .btn-rsvp-action {
-      width: 100%;
-      max-width: 100%;
-    }
-
-    .rsvp-guest-item .fs-5 {
-      width: 100%;
-      min-width: 0;
+    .rsvp-day-card {
+      flex-basis: 100%;
     }
   }
 
@@ -686,12 +678,12 @@
     </div>
 
     <!-- Alert Messages -->
-    {% if success %}
+    <!-- {% if success %}
     <div class="alert alert-success d-flex align-items-center rounded-3 p-3 mb-4 border-0 shadow-sm" role="alert" style="background-color: rgba(38, 66, 42, 0.1); color: var(--green);">
       <i class="bi bi-check-circle-fill me-2 fs-5"></i>
       <div><strong>Tudo certo!</strong> {{ msg }}</div>
     </div>
-    {% endif %}
+    {% endif %} -->
 
     <form method="post" action="" class="mt-4">
       {% csrf_token %}

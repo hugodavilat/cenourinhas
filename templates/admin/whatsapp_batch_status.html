@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Progresso do envio - Batch #{{ batch.id }}</h1>
+<div id="summary">
+    <p>Status: <span id="batch-status">{{ batch.status }}</span></p>
+    <p>Total: <span id="total">{{ batch.total }}</span></p>
+    <p>Enviados: <span id="sent_count">{{ batch.sent_count }}</span></p>
+    <p>Falhas: <span id="failed_count">{{ batch.failed_count }}</span></p>
+</div>
+<hr/>
+<ul id="items-list">
+    {% for item in batch.items.all %}
+    <li data-phone="{{ item.phone_number }}">{{ item.guest_name }} - <span class="status">{{ item.status }}</span></li>
+    {% endfor %}
+</ul>
+<script>
+(function(){
+    const batchId = {{ batch.id }};
+    const url = new URL(window.location.pathname, window.location.origin);
+    const jsonUrl = new URL(`/wedding-admin/whatsapp-batch/${batchId}/json/`, window.location.origin).toString();
+
+    function render(data){
+        document.getElementById('batch-status').textContent = data.status;
+        document.getElementById('total').textContent = data.total;
+        document.getElementById('sent_count').textContent = data.sent_count;
+        document.getElementById('failed_count').textContent = data.failed_count;
+
+        const ul = document.getElementById('items-list');
+        ul.innerHTML = '';
+        data.items.forEach(function(i){
+            const li = document.createElement('li');
+            let emoji = '⏳';
+            if(i.status === 'sent') emoji = '✅';
+            if(i.status === 'failed') emoji = '❌';
+            li.textContent = `${emoji} ${i.name} (${i.phone})` + (i.error ? ` - ${i.error}` : '');
+            ul.appendChild(li);
+        });
+    }
+
+    async function poll(){
+        try{
+            const res = await fetch(jsonUrl, {cache: 'no-store'});
+            if(!res.ok) throw new Error('Failed to fetch');
+            const data = await res.json();
+            render(data);
+            if(data.status === 'running'){
+                setTimeout(poll, 1500);
+            }
+        }catch(err){
+            console.error('Polling error', err);
+            setTimeout(poll, 3000);
+        }
+    }
+
+    poll();
+})();
+</script>
+{% endblock %}

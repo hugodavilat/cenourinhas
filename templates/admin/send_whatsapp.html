@@ -97,6 +97,7 @@
                                 <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmados</option>
                                 <option value="not_answered" {% if selected_status == 'not_answered' %}selected{% endif %}>Pendentes</option>
                                 <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Recusados</option>
+                                <option value="not_sent" {% if selected_status == 'not_sent' %}selected{% endif %}>Não enviados / com erro</option>
                             </select>
                             <select name="day" class="form-select form-select-sm form-control-custom" style="padding: 0.4rem 2rem 0.4rem 1rem; font-size: 0.88rem;" onchange="this.form.submit()">
                                 <option value="all" {% if selected_day == 'all' %}selected{% endif %}>Todos Dias</option>
