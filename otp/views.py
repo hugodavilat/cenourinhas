@@ -52,18 +52,30 @@ def login_phone(request):
             except Exception as exc:
                 print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
                 messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
-                if not DEBUG:
-                    return redirect("login_phone")
+                # If sending fails due to service error, fall back to direct login
                 error = str(exc)
+                sent = False
 
             if not sent:
-                print(f"Redirect: não foi possível enviar OTP para {full_phone}: {error}")
-                if DEBUG:
-                    messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Erro do serviço: {error}")
-                else:
-                    messages.error(request, f"Não foi possível enviar o OTP para {full_phone}. Verifique o número ou tente novamente mais tarde.")
-                if not DEBUG:
-                    return redirect("login_phone")
+                print(f"Fallback: não foi possível enviar OTP para {full_phone}: {error} — concedendo acesso direto.")
+                # Informational message for the user/admin
+                messages.warning(request, "Não foi possível enviar o OTP; acesso direto concedido temporariamente.")
+                # Authenticate the guest directly as a fallback (legacy: mark both days confirmed)
+                request.session["otp_user_id"] = user.id
+
+                # Set session expiry and mark guest as authenticated
+                request.session["guest_authenticated"] = True
+                request.session["is_admin"] = user.phone_number in ADMIN_PHONES
+                request.session.set_expiry(3600)
+                request.session.save()
+                session_key = request.session.session_key
+
+                # Persist single-active-session info on the Guest
+                user.active_session_key = session_key
+                user.active_until = timezone.now() + timedelta(seconds=7200)
+                user.save()
+
+                return redirect("home")
 
             OTP.objects.create(
                 user=user,
@@ -71,11 +83,9 @@ def login_phone(request):
                 expires_at=timezone.now() + timedelta(minutes=5)
             )
 
-            user.is_confirmed = False
-            # keep per-day state consistent with legacy behavior: reset per-day to pending when re-sending OTP
-            user.day1_status = 'pending'
-            user.day2_status = 'pending'
-            user.message_sent = True
+            # Persist single-active-session info on the Guest
+            user.active_session_key = session_key
+            user.active_until = timezone.now() + timedelta(seconds=7200)
             user.save()
 
             request.session["otp_user_id"] = user.id
@@ -122,12 +132,6 @@ def verify_otp(request):
                 if otp.is_expired():
                     messages.error(request, "Code expired")
                     return redirect("login_phone")
-                # Confirm the extra guest (legacy: mark both days confirmed)
-                extra.day1_status = 'confirmed'
-                extra.day2_status = 'confirmed'
-                extra.is_confirmed = True
-                extra.not_answered = False
-                extra.save()
                 otp_valid = True
             else:
                 otp = OTP.objects.filter(user=user, code=code).order_by("-created_at").first()
@@ -139,16 +143,6 @@ def verify_otp(request):
                     return redirect("login_phone")
                 otp_valid = True
             
-            # mark guest as confirmed and store authenticated flag in session
-            if otp_valid:
-                # Mark user as confirmed for both days (legacy behavior)
-                user.day1_status = 'confirmed'
-                user.day2_status = 'confirmed'
-                user.is_confirmed = True
-                user.not_answered = False
-                # reset message_sent since verification succeeded
-                user.message_sent = False
-                user.save()
 
             # Set session expiry and mark guest as authenticated
             # Example: sessions expire in 1 hour (3600 seconds)
