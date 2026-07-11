@@ -87,16 +87,16 @@ def tool_confirm_presence(phone: str, day1: bool = True, day2: bool = True):
 
     # Mensagem final humanizada
     yes_text = ''
-    if day1:
+    if day1 and not day2:
         yes_text = ' no dia 10 de outubro'
-    elif day2:
+    elif day2 and not day1:
         yes_text = ' no dia 11 de outubro'
     elif day1 and day2:
         yes_text = ' nos dias 10 e 11 de outubro'
     no_text = ''
-    if not day1:
+    if not day1 and day2:
         no_text = ' no dia 10 de outubro'
-    elif not day2:
+    elif not day2 and day1:
         no_text = ' no dia 11 de outubro'
     elif not day1 and not day2:
         no_text = ' nos dias 10 e 11 de outubro'
