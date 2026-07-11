@@ -47,15 +47,15 @@ def login_phone(request):
             if DEBUG:
                 print(f"DEBUG: OTP para {full_phone} é {code}")
                 # Skip WhatsApp in debug mode - auto-verify
-            try:
-                sent, error = send_whatsapp_otp(full_phone, code)
-            except Exception as exc:
-                print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
-                messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
-                # If sending fails due to service error, fall back to direct login
-                error = str(exc)
-                sent = False
-
+            # try:
+            #     sent, error = send_whatsapp_otp(full_phone, code)
+            # except Exception as exc:
+            #     print(f"Redirect: erro ao tentar enviar OTP para {full_phone}: {exc}")
+            #     messages.error(request, f"Erro técnico ao tentar enviar OTP: {exc}")
+            #     # If sending fails due to service error, fall back to direct login
+            #     error = str(exc)
+            #     sent = False
+            sent, error = False, "otp removed from page right now"
             if not sent:
                 print(f"Fallback: não foi possível enviar OTP para {full_phone}: {error} — concedendo acesso direto.")
                 # Informational message for the user/admin
