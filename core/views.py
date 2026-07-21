@@ -107,6 +107,13 @@ def home(request):
         'address': '',
         'message': 'Estamos preparando uma celebração especial — mais informações abaixo.'
     }
+
+    # For fetch-based RSVP submissions, return only the RSVP section so the
+    # client can swap it in place without a full-page reload (which was
+    # scrolling the user to the top and back down to the RSVP section).
+    if request.method == "POST" and request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(request, 'partials/_rsvp.html', context)
+
     return render(request, 'index.html', context)
 
 
