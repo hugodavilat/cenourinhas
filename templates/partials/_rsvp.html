@@ -1,0 +1,113 @@
+<!-- RSVP / Confirmação de Presença -->
+<section id="rsvp" class="py-4">
+  <div class="card-premium">
+    <div class="text-center mb-4">
+      <h2 class="display-font fs-1">Confirmação de Presença</h2>
+      <!-- <p class="text-muted tracking-widest text-uppercase small" style="letter-spacing: 0.1em;">Confirme sua presença no nosso evento</p> -->
+    </div>
+
+    <!-- Alert Messages -->
+    <!-- {% if success %}
+    <div class="alert alert-success d-flex align-items-center rounded-3 p-3 mb-4 border-0 shadow-sm" role="alert" style="background-color: rgba(38, 66, 42, 0.1); color: var(--green);">
+      <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+      <div><strong>Tudo certo!</strong> {{ msg }}</div>
+    </div>
+    {% endif %} -->
+
+    <form method="post" action="" class="mt-4">
+      {% csrf_token %}
+
+      <!-- <p class="text-muted text-center mb-4">Selecione e confirme a presença para cada membro da sua família:</p> -->
+
+      <div class="col-lg-10 mx-auto">
+        <!-- Main Guest Item -->
+        <div class="rsvp-guest-item">
+          <div class="d-flex align-items-center gap-3">
+            <span class="fs-5 fw-medium">
+              {{ main_guest.name }}
+              {% if main_guest.phone_number %}
+              <small class="text-muted d-block" style="font-size:0.85rem;"><i class="bi bi-telephone"></i> {{ main_guest.phone_number }}</small>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="d-flex flex-wrap gap-3 w-100 justify-content-end">
+            <div class="rsvp-day-card">
+              <div class="day-title">10 de outubro</div>
+              {% if main_guest.day1_status == 'confirmed' %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">Confirmado</span>
+              {% elif main_guest.day1_status == 'rejected' %}
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">Recusado</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">Pendente</span>
+              {% endif %}
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button name="day1_guest_{{ main_guest.id }}" value="confirmed" class="btn {% if main_guest.day1_status == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %} btn-rsvp-action btn-sm" type="submit" title="Confirmar dia 10">Confirmar</button>
+                <button name="day1_guest_{{ main_guest.id }}" value="rejected" class="btn {% if main_guest.day1_status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-rsvp-action btn-sm" type="submit" title="Recusar dia 10">Recusar</button>
+              </div>
+            </div>
+            <div class="rsvp-day-card">
+              <div class="day-title">11 de outubro</div>
+              {% if main_guest.day2_status == 'confirmed' %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">Confirmado</span>
+              {% elif main_guest.day2_status == 'rejected' %}
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">Recusado</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">Pendente</span>
+              {% endif %}
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button name="day2_guest_{{ main_guest.id }}" value="confirmed" class="btn {% if main_guest.day2_status == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %} btn-rsvp-action btn-sm" type="submit" title="Confirmar dia 11">Confirmar</button>
+                <button name="day2_guest_{{ main_guest.id }}" value="rejected" class="btn {% if main_guest.day2_status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-rsvp-action btn-sm" type="submit" title="Recusar dia 11">Recusar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extra Guests (Family members) -->
+        {% for extra in extras %}
+        <div class="rsvp-guest-item">
+          <div class="d-flex align-items-center gap-3">
+            <span class="fs-5 fw-medium">
+              <span class="text-muted fs-6 me-1">↳</span> {{ extra.name }}
+              {% if extra.phone_number %}
+              <small class="text-muted d-block" style="font-size:0.85rem;"><i class="bi bi-telephone"></i> {{ extra.phone_number }}</small>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="d-flex flex-wrap gap-3 w-100 justify-content-end">
+            <div class="rsvp-day-card">
+              <div class="day-title">10 de outubro</div>
+              {% if extra.day1_status == 'confirmed' %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">Confirmado</span>
+              {% elif extra.day1_status == 'rejected' %}
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">Recusado</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">Pendente</span>
+              {% endif %}
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button name="day1_extra_{{ extra.id }}" value="confirmed" class="btn {% if extra.day1_status == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %} btn-rsvp-action btn-sm" type="submit" title="Confirmar dia 10">Confirmar</button>
+                <button name="day1_extra_{{ extra.id }}" value="rejected" class="btn {% if extra.day1_status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-rsvp-action btn-sm" type="submit" title="Recusar dia 10">Recusar</button>
+              </div>
+            </div>
+            <div class="rsvp-day-card">
+              <div class="day-title">11 de outubro</div>
+              {% if extra.day2_status == 'confirmed' %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">Confirmado</span>
+              {% elif extra.day2_status == 'rejected' %}
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">Recusado</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">Pendente</span>
+              {% endif %}
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button name="day2_extra_{{ extra.id }}" value="confirmed" class="btn {% if extra.day2_status == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %} btn-rsvp-action btn-sm" type="submit" title="Confirmar dia 11">Confirmar</button>
+                <button name="day2_extra_{{ extra.id }}" value="rejected" class="btn {% if extra.day2_status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-rsvp-action btn-sm" type="submit" title="Recusar dia 11">Recusar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+</section>
